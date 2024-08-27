@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "deno",
+			"command": "run",
+			"args": [
+				"--allow-net",
+				"index.ts"
+			],
+			"problemMatcher": [
+				"$deno"
+			],
+			"label": "deno: run"
+		},
+		{
+			"type": "deno",
+			"command": "test",
+			"problemMatcher": [
+				"$deno-test"
+			],
+			"group": "test",
+			"label": "deno: test"
+		}
+	]
+}

@@ -1,0 +1,100 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css">    <style>
+        body {
+            margin: 1em;
+        }
+      </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="">
+    <h1>Get notified when used CD markets have your cd</h1>
+    <form id="form">
+        <label for="url">Webhook url:</label>
+        <input type="url" name="url">
+                    <br>
+        <fieldset>
+            <legend>Items to subscribe to</legend>
+            <input type="hidden" name="artist">
+            <input type="hidden" name="albumtitle">
+            <label for="artist">Arist:</label>
+            <input type="text" name="artist">
+            <label for="albumtitle">Album:</label>
+            <input type="text" name="albumtitle">
+        </fieldset>
+        <br>
+            <button type="button" id="addrow">Add item</button>
+        <br><br>
+        <input type="submit" value="Submit">
+    </form>
+    <div>
+        <h1>Help</h1>
+        <h3>I want a push notifcation, not a webhook</h3>
+        <p>I encourge the use of https://ntfy.sh/</p>
+        <p>For example, setting up a webhook url like this </p>
+        <code>
+            https://ntfy.sh/469e06cd-4052-492d-82c9-ced2f836d65f?tpl=yes&t={{.albumTitle}}+by+{{.artist}}+-+{{.price}}+kr&m={{.albumTitle}}+by+{{.artist}}+is+available+for+{{.price}}+kr+at+{{.source}}
+        </code>
+        <h3>What is the webhook format</h3>
+        <p>The webhook will be sent as a HTTP cloudevent that with a body that follows the shape as examplified below</p>
+        
+<code><pre>{
+    albumTitle: "19",
+    artist: "ADELE",
+    price: 10,
+    source: "http://cd6000.dk/"
+}</pre></code>
+    </div>
+    <template id="itemrow">
+        <br>
+        <label for="artist">Arist:</label>
+        <input type="text" name="artist">
+        <label for="albumtitle">Album:</label>
+        <input type="text" name="albumtitle">
+    </template>
+</body>
+<script>
+    const formElem = document.getElementById("form");
+
+    async function submit(event) {
+        const formData = new FormData(formElem);
+        let object = {};
+        formData.forEach((value, key) => {
+            if (key in object) {
+                object[key] = [object[key]].flat().concat(value).filter(x => !!x)
+            } else {
+                object[key] = value
+            }
+            return object;
+        });
+        const body = {
+            specversion: "1.0",
+            source: "/wishlistSubscriptionForm",
+            type: "dev.deno.cdwishlist.wishlistSubscriptionFormSubmitted",
+            time: new Date().toISOString(),
+            id: self.crypto.randomUUID(),
+            datacontenttype: "application/json",
+            data: object
+        };
+        event.preventDefault();
+        console.log(body)
+        await fetch("/", {
+            headers: {
+                'Content-Type': 'application/cloudevents+json; charset=utf-8',
+            },
+            method: 'POST',
+            body: JSON.stringify(body)
+        })
+    }
+    formElem.addEventListener("submit", submit);
+</script>
+<script>
+    const [fieldSet] = [...document.getElementsByTagName("fieldset")];
+    const template = document.getElementById("itemrow");
+    async function addRow(event) {
+        const clone = template.content.cloneNode(true);
+        fieldSet.appendChild(clone);
+    }
+    document.getElementById("addrow").addEventListener("click", addRow)
+</script>
+</html>
