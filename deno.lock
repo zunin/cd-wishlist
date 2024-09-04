@@ -18,6 +18,7 @@
       "jsr:@std/crypto@^1.0.0-rc.1": "jsr:@std/crypto@1.0.2",
       "jsr:@std/encoding@1.0.0-rc.2": "jsr:@std/encoding@1.0.0-rc.2",
       "jsr:@std/encoding@^0.223.0": "jsr:@std/encoding@0.223.0",
+      "jsr:@std/encoding@^1.0.3": "jsr:@std/encoding@1.0.3",
       "jsr:@std/http@0.223": "jsr:@std/http@0.223.0",
       "jsr:@std/http@0.224": "jsr:@std/http@0.224.5",
       "jsr:@std/io@0.223": "jsr:@std/io@0.223.0",
@@ -97,6 +98,9 @@
       },
       "@std/encoding@1.0.0-rc.2": {
         "integrity": "160d7674a20ebfbccdf610b3801fee91cf6e42d1c106dd46bbaf46e395cd35ef"
+      },
+      "@std/encoding@1.0.3": {
+        "integrity": "5dbc2d7f5aa6062de7e19862ea856ac7a0dcce0b6fb46bb7b332d3bdcd4408b7"
       },
       "@std/http@0.223.0": {
         "integrity": "15ab8a0c5a7e9d5be017a15b01600f20f66602ceec48b378939fa24fcec522aa",
@@ -367,6 +371,7 @@
     "dependencies": [
       "jsr:@oak/oak@^16.1.0",
       "jsr:@std/collections@^1.0.5",
+      "jsr:@std/encoding@^1.0.3",
       "jsr:@std/text@^1.0.4",
       "jsr:@std/uuid@^1.0.0",
       "npm:cloudevents@8.0.2"

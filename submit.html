@@ -7,13 +7,13 @@
       </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="">
+<body>
     <h1>Get notified when used CD markets have your cd</h1>
     <form id="form">
         <label for="url">Webhook url:</label>
         <input type="url" name="url">
                     <br>
-        <fieldset>
+        <fieldset>  
             <legend>Items to subscribe to</legend>
             <input type="hidden" name="artist">
             <input type="hidden" name="albumtitle">
@@ -54,6 +54,46 @@
     </template>
 </body>
 <script>
+    const template = document.getElementById("itemrow");
+    const [fieldSet] = [...document.getElementsByTagName("fieldset")];
+
+    async function addRow() {
+        const clone = template.content.cloneNode(true);
+        fieldSet.appendChild(clone);
+    }
+</script>
+<script>
+    const queryParams = new URL(document.documentURI).searchParams;
+    for(let i = 1; i < queryParams.getAll("artist").length; i++) {
+        addRow();
+    }
+    const inputs = [...document
+        .getElementById("form")
+        .getElementsByTagName("input")]
+        .filter(inputElement => !["submit", "hidden"].some(type => type === inputElement.getAttribute("type")));
+    
+    const [urlInput] = inputs.filter(inputElement => inputElement.getAttribute("name") === "url")
+    urlInput.value = queryParams.get("url");
+
+    const zip = (a, b) => a.map((k, i) => [k, b[i]]);
+
+    const artistInputs = inputs.filter(inputElement => inputElement.getAttribute("name") === "artist");
+    const albumTitleInputs = inputs.filter(inputElement => inputElement.getAttribute("name") === "albumtitle")
+
+    zip(artistInputs, queryParams.getAll("artist")).forEach(([input, queryParam]) => {
+        if (queryParam) {
+            input.value = queryParam
+        }
+    })
+
+    zip(albumTitleInputs, queryParams.getAll("albumtitle").filter(x => x !== undefined)).forEach(([input, queryParam]) => {
+        if (queryParam) {
+            input.value = queryParam
+        }
+    })
+
+</script>
+<script>
     const formElem = document.getElementById("form");
 
     async function submit(event) {
@@ -77,7 +117,7 @@
             data: object
         };
         event.preventDefault();
-        console.log(body)
+
         await fetch("/", {
             headers: {
                 'Content-Type': 'application/cloudevents+json; charset=utf-8',
@@ -89,12 +129,6 @@
     formElem.addEventListener("submit", submit);
 </script>
 <script>
-    const [fieldSet] = [...document.getElementsByTagName("fieldset")];
-    const template = document.getElementById("itemrow");
-    async function addRow(event) {
-        const clone = template.content.cloneNode(true);
-        fieldSet.appendChild(clone);
-    }
     document.getElementById("addrow").addEventListener("click", addRow)
 </script>
 </html>

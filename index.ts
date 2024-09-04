@@ -1,14 +1,18 @@
 import * as CloudEvents from "cloudevents";
-import { CloudEventV1, CloudEvent } from "cloudevents";
+import { CloudEvent, CloudEventV1 } from "cloudevents";
 import { Application, Router, Status } from "@oak/oak";
 import { zip } from "@std/collections";
-import { compareSimilarity } from "@std/text";
+import { compareSimilarity, slugify } from "@std/text";
+import { encodeBase64, decodeBase64 } from "@std/encoding";
 import rytmeboxen from "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json" with {
     type: "json",
 };
 import cd6000 from "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json" with {
     type: "json",
 };
+import { SubscriptionEvent } from "./events/SubscriptionEvent.ts";
+import { StockAvailableEvent } from "./events/StockAvailableEvent.ts";
+import store from "./store.ts";
 
 const router = new Router();
 
@@ -16,19 +20,6 @@ router.get("/", async (ctx) => {
     const content = await Deno.readTextFile("./submit.html");
     ctx.response.body = content;
 });
-
-type SubscriptionEvent = {
-    url: URL;
-    artist: Array<string>;
-    albumtitle: Array<string>;
-};
-
-type StockAvailableEvent = {
-    artist: string;
-    albumTitle: string;
-    price: number;
-    source: string;
-}
 
 function makeCloudEventsHeaders(requestHeaders: Request["headers"]) {
     const headers = {} as CloudEvents.Headers;
@@ -45,22 +36,44 @@ router.post("/", async (ctx) => {
         headers,
         body,
     } as CloudEvents.Message) as CloudEventV1<SubscriptionEvent>;
+    
+    await store.saveSubscription(receivedEvent);
 
     emitAlbumsForSubscriptions(receivedEvent);
 
     ctx.response.status = Status.Created;
 });
 
-function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>) {
-    console.log(event.data?.url)
-        const emit = CloudEvents.emitterFor(
-            CloudEvents.httpTransport(event.data?.url!),    
-        );
-    const availableAlbums = cd6000.map(x => {return {...x, source: new URL("http://cd6000.dk/").href}})
-        .concat(rytmeboxen.map(x => {return {...x, source: new URL("http://rytmeboxen.dk/").href}}));
+router.get("/:webhookSlug", async (ctx) => {
+    const slug = ctx.params.webhookSlug!;
+    const subscription = await store.getSubscription(slug);
+    if (!slug || !subscription) {
+        return ctx.response.redirect("/");
+    }
+    const prefilledData = new URLSearchParams();
+    prefilledData.append('url', subscription.data?.url.toString()!);
+    for(const artist of subscription.data?.artist!) {
+        prefilledData.append('artist', artist)
+    }
+    for(const albumtitle of subscription.data?.albumtitle!) {
+        prefilledData.append('albumtitle', albumtitle)
+    }
 
-    zip(event.data?.albumtitle!, event.data?.artist!)
-        .forEach(async ([album, artist]) => {
+    return ctx.response.redirect("/?"+prefilledData.toString())
+})
+
+async function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>) {
+    const emit = CloudEvents.emitterFor(
+        CloudEvents.httpTransport(event.data?.url!),
+    );
+    const availableAlbums = cd6000.map((x) => {
+        return { ...x, source: new URL("http://cd6000.dk/").href };
+    }).concat(rytmeboxen.map((x) => {
+            return { ...x, source: new URL("http://rytmeboxen.dk/").href };
+    }));
+
+    const events = zip(event.data?.albumtitle!, event.data?.artist!)
+        .map(([album, artist]) => {
             const [closestArtist] = availableAlbums.map((x) => x.artist).sort(
                 compareSimilarity(artist, {
                     caseSensitive: false,
@@ -82,19 +95,23 @@ function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>) {
                 contains(bestGuess.albumTitle, album) &&
                 contains(bestGuess.artist, artist)
             ) {
-                const notificationEvent = new CloudEvent<StockAvailableEvent>({
+                return new CloudEvent<StockAvailableEvent>({
                     type: "dev.deno.cdwishlist.StockAvailableEvent",
                     time: new Date().toISOString(),
                     id: self.crypto.randomUUID(),
                     datacontenttype: "text/plain; charset=utf-8",
                     specversion: "1.0",
                     source: `cdwishlist.deno.dev/subscriptions/${event.id}`,
-                    data: bestGuess
-                }); 
-                console.log(bestGuess)
-                await emit(notificationEvent)
+                    data: bestGuess,
+                });
             }
         });
+    await Promise.all(events.map((event) => {
+        if (event) {
+            return emit(event);
+        }
+    }));
+
 }
 
 function contains(a: string, b: string): boolean {

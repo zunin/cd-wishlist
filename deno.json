@@ -2,6 +2,7 @@
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^16.1.0",
     "@std/collections": "jsr:@std/collections@^1.0.5",
+    "@std/encoding": "jsr:@std/encoding@^1.0.3",
     "@std/text": "jsr:@std/text@^1.0.4",
     "@std/uuid": "jsr:@std/uuid@^1.0.0",
     "cloudevents": "npm:cloudevents@8.0.2"
