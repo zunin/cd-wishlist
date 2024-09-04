@@ -2,9 +2,8 @@ import * as CloudEvents from "cloudevents";
 import { CloudEvent, CloudEventV1 } from "cloudevents";
 import { Application, Router, Status } from "@oak/oak";
 import { zip } from "@std/collections";
-import { compareSimilarity, slugify } from "@std/text";
-import { encodeBase64, decodeBase64 } from "@std/encoding";
-import rytmeboxen from "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json" with {
+import { compareSimilarity } from "@std/text";
+    import rytmeboxen from "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json" with {
     type: "json",
 };
 import cd6000 from "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json" with {
@@ -44,20 +43,24 @@ router.post("/", async (ctx) => {
     ctx.response.status = Status.Created;
 });
 
-router.get("/:webhookSlug", async (ctx) => {
-    const slug = ctx.params.webhookSlug!;
-    const subscription = await store.getSubscription(slug);
-    if (!slug || !subscription) {
+router.get("/subscriptions/:eventId", async (ctx) => {
+    const eventId = ctx.params.eventId!;
+    const subscription = await store.getSubscription(eventId);
+    if (!subscription) {
         return ctx.response.redirect("/");
     }
     const prefilledData = new URLSearchParams();
     prefilledData.append('url', subscription.data?.url.toString()!);
+
+    prefilledData.append('subscriptionId', subscription.id);
+
     for(const artist of subscription.data?.artist!) {
         prefilledData.append('artist', artist)
     }
     for(const albumtitle of subscription.data?.albumtitle!) {
         prefilledData.append('albumtitle', albumtitle)
     }
+    
 
     return ctx.response.redirect("/?"+prefilledData.toString())
 })
@@ -98,7 +101,7 @@ async function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>
                 return new CloudEvent<StockAvailableEvent>({
                     type: "dev.deno.cdwishlist.StockAvailableEvent",
                     time: new Date().toISOString(),
-                    id: self.crypto.randomUUID(),
+                    id: event.id,
                     datacontenttype: "text/plain; charset=utf-8",
                     specversion: "1.0",
                     source: `cdwishlist.deno.dev/subscriptions/${event.id}`,

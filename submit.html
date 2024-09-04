@@ -1,6 +1,7 @@
 <html>
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css">    <style>
+    <link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css">    
+    <style>
         body {
             margin: 1em;
         }
@@ -9,6 +10,7 @@
 </head>
 <body>
     <h1>Get notified when used CD markets have your cd</h1>
+    <input type="hidden" name="subscriptionId">
     <form id="form">
         <label for="url">Webhook url:</label>
         <input type="url" name="url">
@@ -33,7 +35,7 @@
         <p>I encourge the use of https://ntfy.sh/</p>
         <p>For example, setting up a webhook url like this </p>
         <code>
-            https://ntfy.sh/469e06cd-4052-492d-82c9-ced2f836d65f?tpl=yes&t={{.albumTitle}}+by+{{.artist}}+-+{{.price}}+kr&m={{.albumTitle}}+by+{{.artist}}+is+available+for+{{.price}}+kr+at+{{.source}}
+            https://ntfy.sh/469e06cd-4052-492d-82c9-ced2f836d65f?tpl=yes&t={{.albumTitle}}+by+{{.artist}}+-+{{.price}}+kr&m={{.albumTitle}}+by+{{.artist}}+is+available+for+{{.price}}+kr+at+{{.source}}.+Manage+subscriptions+at+https://cdwishlist.deno.dev/subscriptions/{{subscriptionId}}
         </code>
         <h3>What is the webhook format</h3>
         <p>The webhook will be sent as a HTTP cloudevent that with a body that follows the shape as examplified below</p>
@@ -53,6 +55,16 @@
         <input type="text" name="albumtitle">
     </template>
 </body>
+<script>
+    const subscriptionId = self.crypto.randomUUID();;
+    document.getElementsByName("subscriptionId").forEach(element => {
+        element.value = subscriptionId
+    });
+    [...document.getElementsByTagName("code")].filter(x => x.innerHTML.includes("{{subscriptionId}}")).forEach(element => {
+        element.innerHTML = element.innerHTML.replace("{{subscriptionId}}", subscriptionId)
+    });
+    
+</script>
 <script>
     const template = document.getElementById("itemrow");
     const [fieldSet] = [...document.getElementsByTagName("fieldset")];
@@ -74,6 +86,9 @@
     
     const [urlInput] = inputs.filter(inputElement => inputElement.getAttribute("name") === "url")
     urlInput.value = queryParams.get("url");
+
+    const [subscriptionIdInput] = document.getElementsByName("subscriptionId")
+    subscriptionIdInput.value = queryParams.get("subscriptionId");
 
     const zip = (a, b) => a.map((k, i) => [k, b[i]]);
 
@@ -112,7 +127,7 @@
             source: "/wishlistSubscriptionForm",
             type: "dev.deno.cdwishlist.wishlistSubscriptionFormSubmitted",
             time: new Date().toISOString(),
-            id: self.crypto.randomUUID(),
+            id: document.getElementsByName("subscriptionId")[0].value,
             datacontenttype: "application/json",
             data: object
         };
