@@ -56,28 +56,37 @@
     </template>
 </body>
 <script>
-    const subscriptionId = self.crypto.randomUUID();;
-    document.getElementsByName("subscriptionId").forEach(element => {
-        element.value = subscriptionId
-    });
-    [...document.getElementsByTagName("code")].filter(x => x.innerHTML.includes("{{subscriptionId}}")).forEach(element => {
-        element.innerHTML = element.innerHTML.replace("{{subscriptionId}}", subscriptionId)
-    });
+    const subscriptionId = new URL(document.documentURI).searchParams.get("subscriptionId") ?? self.crypto.randomUUID();
+    const setSubscriptionIdEvent = new CustomEvent("subscriptionIdEvent", {detail: subscriptionId})
     
+    document.addEventListener("subscriptionIdEvent", e => {
+        const id = event.detail;
+        document.getElementsByName("subscriptionId").forEach(element => {
+            element.value = id;
+        });
+    });
+
+    [...document.getElementsByTagName("code")].filter(x => x.innerHTML.includes("{{subscriptionId}}"))
+    .forEach(codeElement => document.addEventListener("subscriptionIdEvent", (event) => {
+        codeElement.innerHTML = codeElement.innerHTML.replace("{{subscriptionId}}", event.detail);
+    }))
+
+    document.dispatchEvent(setSubscriptionIdEvent);
 </script>
 <script>
-    const template = document.getElementById("itemrow");
-    const [fieldSet] = [...document.getElementsByTagName("fieldset")];
-
-    async function addRow() {
+    function addArtistAndAlbumRow(event) {
+        const template = document.getElementById("itemrow");
+        const [fieldSet] = [...document.getElementsByTagName("fieldset")];
         const clone = template.content.cloneNode(true);
         fieldSet.appendChild(clone);
     }
+    document.getElementById("form").addEventListener("addArtistAndAlbumRow", addArtistAndAlbumRow);
 </script>
 <script>
     const queryParams = new URL(document.documentURI).searchParams;
     for(let i = 1; i < queryParams.getAll("artist").length; i++) {
-        addRow();
+        document.getElementById("form")
+            .dispatchEvent(new Event("addArtistAndAlbumRow"));
     }
     const inputs = [...document
         .getElementById("form")
@@ -86,9 +95,6 @@
     
     const [urlInput] = inputs.filter(inputElement => inputElement.getAttribute("name") === "url")
     urlInput.value = queryParams.get("url");
-
-    const [subscriptionIdInput] = document.getElementsByName("subscriptionId")
-    subscriptionIdInput.value = queryParams.get("subscriptionId");
 
     const zip = (a, b) => a.map((k, i) => [k, b[i]]);
 
@@ -144,6 +150,10 @@
     formElem.addEventListener("submit", submit);
 </script>
 <script>
-    document.getElementById("addrow").addEventListener("click", addRow)
+    document.getElementById("addrow")
+        .addEventListener("click", () => {
+            document.getElementById("form")
+            .dispatchEvent(new Event("addArtistAndAlbumRow"))
+        })
 </script>
 </html>
