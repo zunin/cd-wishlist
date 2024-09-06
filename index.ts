@@ -43,6 +43,54 @@ router.post("/", async (ctx) => {
     ctx.response.status = Status.Created;
 });
 
+
+type GitHubRepository = {
+    full_name: string;
+    id: number;
+    name: string;
+    node_id: string;
+    private: boolean;
+    url: string;
+};
+
+type GithubPushEvent = {
+    after: string;
+    base_ref: string | null,
+    before: string;
+    commits: Array<any>,
+    compare: string;
+    created: boolean;
+    deleted: boolean;
+    enterprise?: any;
+    forced: boolean;
+    head_commit: any | null;
+    installation?: any;
+    organization?: any;
+    pusher: any;
+    ref: string;
+    repository: GitHubRepository;
+    sender: any;
+}
+
+router.post("/sources/github", async (ctx) => {
+    const headers = ctx.request.headers;
+    const body = await ctx.request.body.json() as GithubPushEvent;
+    const pushMessage = new CloudEvents.CloudEvent({
+        id: headers.get("X-GitHub-Delivery"]) ?? undefined,
+        source: body.repository.url,
+        specversion: "1.0",
+        type: "com.github.push",
+        datacontenttype: "application/json",
+        subject: body.ref ?? undefined,
+        time: new Date().toISOString(),
+        data: body
+    })
+    console.log("=== event ===")
+    console.log(pushMessage)
+    console.log("=== hook ===")
+    console.log(body);
+})
+
 router.get("/subscriptions/:eventId", async (ctx) => {
     const eventId = ctx.params.eventId!;
     const subscription = await store.getSubscription(eventId);
