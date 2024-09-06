@@ -76,7 +76,7 @@ router.post("/sources/github", async (ctx) => {
     const headers = ctx.request.headers;
     const body = await ctx.request.body.json() as GithubPushEvent;
     const pushMessage = new CloudEvents.CloudEvent({
-        id: headers.get("X-GitHub-Delivery"]) ?? undefined,
+        id: headers.get("X-GitHub-Delivery") ?? undefined,
         source: body.repository.url,
         specversion: "1.0",
         type: "com.github.push",
