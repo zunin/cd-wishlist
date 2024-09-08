@@ -29,24 +29,25 @@
         <br><br>
         <input type="submit" value="Submit">
     </form>
-    <div>
-        <h1>Help</h1>
-        <h3>I want a push notifcation, not a webhook</h3>
+    <h1>Help</h1>
+    <details>
+        <summary>I want a push notifcation, not a webhook</summary>
         <p>I encourge the use of https://ntfy.sh/</p>
         <p>For example, setting up a webhook url like this </p>
         <code>
             https://ntfy.sh/469e06cd-4052-492d-82c9-ced2f836d65f?tpl=yes&t={{.albumTitle}}+by+{{.artist}}+-+{{.price}}+kr&m={{.albumTitle}}+by+{{.artist}}+is+available+for+{{.price}}+kr+at+{{.source}}.+Manage+subscriptions+at+https://cdwishlist.deno.dev/subscriptions/{{subscriptionId}}
         </code>
-        <h3>What is the webhook format</h3>
+    </details>
+    <details>
+        <summary>What is the webhook format</summary>
         <p>The webhook will be sent as a HTTP cloudevent that with a body that follows the shape as examplified below</p>
-        
 <code><pre>{
     albumTitle: "19",
     artist: "ADELE",
     price: 10,
     source: "http://cd6000.dk/"
 }</pre></code>
-    </div>
+</details>
     <template id="itemrow">
         <br>
         <label for="artist">Arist:</label>
