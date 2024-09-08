@@ -6,6 +6,8 @@ import { compareSimilarity } from "@std/text";
 import { SubscriptionEvent } from "./events/SubscriptionEvent.ts";
 import { StockAvailableEvent } from "./events/StockAvailableEvent.ts";
 import store from "./store.ts";
+import { AvailableAlbum } from "./AvailableAlbum.ts";
+import { GithubPushEvent } from "./GithubPushEvent.ts";
 
 const router = new Router();
 
@@ -14,7 +16,7 @@ router.get("/", async (ctx) => {
     ctx.response.body = content;
 });
 
-function makeCloudEventsHeaders(requestHeaders: Request["headers"]) {
+    function makeCloudEventsHeaders(requestHeaders: Request["headers"]) {
     const headers = {} as CloudEvents.Headers;
     for (const [headerKey, headerValue] of requestHeaders.entries()) {
         headers[headerKey] = headerValue;
@@ -38,34 +40,6 @@ router.post("/", async (ctx) => {
 });
 
 
-type GitHubRepository = {
-    full_name: string;
-    id: number;
-    name: string;
-    node_id: string;
-    private: boolean;
-    url: string;
-};
-
-type GithubPushEvent = {
-    after: string;
-    base_ref: string | null,
-    before: string;
-    commits: Array<any>,
-    compare: string;
-    created: boolean;
-    deleted: boolean;
-    enterprise?: any;
-    forced: boolean;
-    head_commit: any | null;
-    installation?: any;
-    organization?: any;
-    pusher: any;
-    ref: string;
-    repository: GitHubRepository;
-    sender: any;
-}
-
 router.post("/sources/github", async (ctx) => {
     const headers = ctx.request.headers;
     const body = await ctx.request.body.json() as GithubPushEvent;
@@ -80,13 +54,16 @@ router.post("/sources/github", async (ctx) => {
         data: body
     })
 
+    console.log(pushMessage.source)
     
     const githubUserContent = pushMessage.source.replace(
         "https://github.com", 
         "https://raw.githubusercontent.com"
     )
 
-    const sourceCDs = await (await fetch(`${githubUserContent}/main/cd.json`)).json() as AvailableAlbum[];
+    console.log(`${githubUserContent}/main/cds.json`)
+
+    const sourceCDs = await (await fetch(`${githubUserContent}/main/cds.json`)).json() as AvailableAlbum[];
 
     const subscriptions = await store.getAllSubscriptions();
     const events = subscriptions
@@ -99,6 +76,8 @@ router.post("/sources/github", async (ctx) => {
         });
 
         await Promise.all(events);
+
+        ctx.response.status = Status.OK;
 })
 
 router.get("/subscriptions/:eventId", async (ctx) => {
@@ -122,13 +101,6 @@ router.get("/subscriptions/:eventId", async (ctx) => {
 
     return ctx.response.redirect("/?"+prefilledData.toString())
 })
-
-type AvailableAlbum = {
-    source: string;
-    albumTitle: string;
-    price: number;
-    artist: string;
-}
 
 function makeEventsFromAvailableAlbums(event: CloudEventV1<SubscriptionEvent>, availableAlbums: Array<AvailableAlbum>) {
     return zip(event.data?.albumtitle!, event.data?.artist!)
