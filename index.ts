@@ -3,12 +3,6 @@ import { CloudEvent, CloudEventV1 } from "cloudevents";
 import { Application, Router, Status } from "@oak/oak";
 import { zip } from "@std/collections";
 import { compareSimilarity } from "@std/text";
-    import rytmeboxen from "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json" with {
-    type: "json",
-};
-import cd6000 from "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json" with {
-    type: "json",
-};
 import { SubscriptionEvent } from "./events/SubscriptionEvent.ts";
 import { StockAvailableEvent } from "./events/StockAvailableEvent.ts";
 import store from "./store.ts";
@@ -85,10 +79,26 @@ router.post("/sources/github", async (ctx) => {
         time: new Date().toISOString(),
         data: body
     })
-    console.log("=== event ===")
-    console.log(pushMessage)
-    console.log("=== hook ===")
-    console.log(body);
+
+    
+    const githubUserContent = pushMessage.source.replace(
+        "https://github.com", 
+        "https://raw.githubusercontent.com"
+    )
+
+    const sourceCDs = await (await fetch(`${githubUserContent}/main/cd.json`)).json() as AvailableAlbum[];
+
+    const subscriptions = await store.getAllSubscriptions();
+    const events = subscriptions
+        .filter(x => !!x)
+        .flatMap(event => {
+            const emit = CloudEvents.emitterFor(
+                CloudEvents.httpTransport(event.data?.url!),
+            );
+            return makeEventsFromAvailableAlbums(event, sourceCDs).map(e => emit(e));
+        });
+
+        await Promise.all(events);
 })
 
 router.get("/subscriptions/:eventId", async (ctx) => {
@@ -113,17 +123,15 @@ router.get("/subscriptions/:eventId", async (ctx) => {
     return ctx.response.redirect("/?"+prefilledData.toString())
 })
 
-async function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>) {
-    const emit = CloudEvents.emitterFor(
-        CloudEvents.httpTransport(event.data?.url!),
-    );
-    const availableAlbums = cd6000.map((x) => {
-        return { ...x, source: new URL("http://cd6000.dk/").href };
-    }).concat(rytmeboxen.map((x) => {
-            return { ...x, source: new URL("http://rytmeboxen.dk/").href };
-    }));
+type AvailableAlbum = {
+    source: string;
+    albumTitle: string;
+    price: number;
+    artist: string;
+}
 
-    const events = zip(event.data?.albumtitle!, event.data?.artist!)
+function makeEventsFromAvailableAlbums(event: CloudEventV1<SubscriptionEvent>, availableAlbums: Array<AvailableAlbum>) {
+    return zip(event.data?.albumtitle!, event.data?.artist!)
         .map(([album, artist]) => {
             const [closestArtist] = availableAlbums.map((x) => x.artist).sort(
                 compareSimilarity(artist, {
@@ -156,11 +164,28 @@ async function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>
                     data: bestGuess,
                 });
             }
-        });
+        }).filter(x => !!x);
+}
+
+async function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>) {
+    const emit = CloudEvents.emitterFor(
+        CloudEvents.httpTransport(event.data?.url!),
+    );
+
+
+    const cd6000 = await (await fetch("https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json")).json() as AvailableAlbum[];
+    const rytmeboxen = await (await fetch("https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json")).json() as AvailableAlbum[];
+
+    const availableAlbums = cd6000.map((x) => {
+        return { ...x, source: new URL("http://cd6000.dk/").href };
+    }).concat(rytmeboxen.map((x) => {
+            return { ...x, source: new URL("http://rytmeboxen.dk/").href };
+    }));
+
+    const events = makeEventsFromAvailableAlbums(event, availableAlbums);
+
     await Promise.all(events.map((event) => {
-        if (event) {
-            return emit(event);
-        }
+        return emit(event);
     }));
 
 }
