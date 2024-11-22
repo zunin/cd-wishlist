@@ -1,6 +1,8 @@
 export type AvailableAlbum = {
-  source: string;
+  origin: string;
   albumTitle: string;
-  price: number;
+  price: string;
   artist: string;
+  quality: string;
+  type: string;
 };

@@ -16,7 +16,7 @@ router.get("/", async (ctx) => {
     ctx.response.body = content;
 });
 
-    function makeCloudEventsHeaders(requestHeaders: Request["headers"]) {
+function makeCloudEventsHeaders(requestHeaders: Request["headers"]) {
     const headers = {} as CloudEvents.Headers;
     for (const [headerKey, headerValue] of requestHeaders.entries()) {
         headers[headerKey] = headerValue;
@@ -31,14 +31,13 @@ router.post("/", async (ctx) => {
         headers,
         body,
     } as CloudEvents.Message) as CloudEventV1<SubscriptionEvent>;
-    
+
     await store.saveSubscription(receivedEvent);
 
     emitAlbumsForSubscriptions(receivedEvent);
 
     ctx.response.status = Status.Created;
-});
-
+});     
 
 router.post("/sources/github", async (ctx) => {
     const headers = ctx.request.headers;
@@ -51,34 +50,37 @@ router.post("/sources/github", async (ctx) => {
         datacontenttype: "application/json",
         subject: body.ref ?? undefined,
         time: new Date().toISOString(),
-        data: body
-    })
+        data: body,
+    });
 
-    console.log(pushMessage.source)
-    
+    console.log(pushMessage.source);
+
     const githubUserContent = pushMessage.source.replace(
-        "https://github.com", 
-        "https://raw.githubusercontent.com"
-    )
+        "https://github.com",
+        "https://raw.githubusercontent.com",
+    );
 
-    console.log(`${githubUserContent}/main/cds.json`)
+    console.log(`${githubUserContent}/main/cds.json`);
 
-    const sourceCDs = await (await fetch(`${githubUserContent}/main/cds.json`)).json() as AvailableAlbum[];
+    const sourceCDs = await (await fetch(`${githubUserContent}/main/cds.json`))
+        .json() as AvailableAlbum[];
 
     const subscriptions = await store.getAllSubscriptions();
     const events = subscriptions
-        .filter(x => !!x)
-        .flatMap(event => {
+        .filter((x) => !!x)
+        .flatMap((event) => {
             const emit = CloudEvents.emitterFor(
                 CloudEvents.httpTransport(event.data?.url!),
             );
-            return makeEventsFromAvailableAlbums(event, sourceCDs).map(e => emit(e));
+            return makeEventsFromAvailableAlbums(event, sourceCDs).map((e) =>
+                emit(e)
+            );
         });
 
-        await Promise.all(events);
+    await Promise.all(events);
 
-        ctx.response.status = Status.OK;
-})
+    ctx.response.status = Status.OK;
+});
 
 router.get("/subscriptions/:eventId", async (ctx) => {
     const eventId = ctx.params.eventId!;
@@ -87,22 +89,29 @@ router.get("/subscriptions/:eventId", async (ctx) => {
         return ctx.response.redirect("/");
     }
     const prefilledData = new URLSearchParams();
-    prefilledData.append('url', subscription.data?.url.toString()!);
+    prefilledData.append("url", subscription.data?.url.toString()!);
 
-    prefilledData.append('subscriptionId', subscription.id);
+    prefilledData.append("subscriptionId", subscription.id);
 
-    for(const artist of subscription.data?.artist!) {
-        prefilledData.append('artist', artist)
+    for (const artist of subscription.data?.artist!) {
+        prefilledData.append("artist", artist);
     }
-    for(const albumtitle of subscription.data?.albumtitle!) {
-        prefilledData.append('albumtitle', albumtitle)
+    for (const albumtitle of subscription.data?.albumtitle!) {
+        prefilledData.append("albumtitle", albumtitle);
     }
-    
 
-    return ctx.response.redirect("/?"+prefilledData.toString())
-})
+    return ctx.response.redirect("/?" + prefilledData.toString());
+});
 
-function makeEventsFromAvailableAlbums(event: CloudEventV1<SubscriptionEvent>, availableAlbums: Array<AvailableAlbum>) {
+router.get("/api", async (ctx) => {
+    const content = await Deno.readTextFile("./openapispec.html");
+    ctx.response.body = content;
+});
+
+function makeEventsFromAvailableAlbums(
+    event: CloudEventV1<SubscriptionEvent>,
+    availableAlbums: Array<AvailableAlbum>,
+) {
     return zip(event.data?.albumtitle!, event.data?.artist!)
         .map(([album, artist]) => {
             const [closestArtist] = availableAlbums.map((x) => x.artist).sort(
@@ -136,30 +145,32 @@ function makeEventsFromAvailableAlbums(event: CloudEventV1<SubscriptionEvent>, a
                     data: bestGuess,
                 });
             }
-        }).filter(x => !!x);
+        }).filter((x) => !!x);
 }
 
-async function emitAlbumsForSubscriptions(event: CloudEventV1<SubscriptionEvent>) {
+async function emitAlbumsForSubscriptions(
+    event: CloudEventV1<SubscriptionEvent>,
+) {
     const emit = CloudEvents.emitterFor(
         CloudEvents.httpTransport(event.data?.url!),
     );
 
+    const cd6000 =
+        await (await fetch(
+            "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json",
+        )).json() as AvailableAlbum[];
+    const rytmeboxen =
+        await (await fetch(
+            "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json",
+        )).json() as AvailableAlbum[];
 
-    const cd6000 = await (await fetch("https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json")).json() as AvailableAlbum[];
-    const rytmeboxen = await (await fetch("https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json")).json() as AvailableAlbum[];
-
-    const availableAlbums = cd6000.map((x) => {
-        return { ...x, source: new URL("http://cd6000.dk/").href };
-    }).concat(rytmeboxen.map((x) => {
-            return { ...x, source: new URL("http://rytmeboxen.dk/").href };
-    }));
+    const availableAlbums = cd6000.concat(rytmeboxen);
 
     const events = makeEventsFromAvailableAlbums(event, availableAlbums);
 
     await Promise.all(events.map((event) => {
         return emit(event);
     }));
-
 }
 
 function contains(a: string, b: string): boolean {

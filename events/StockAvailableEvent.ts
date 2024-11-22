@@ -1,6 +1,3 @@
-export type StockAvailableEvent = {
-  artist: string;
-  albumTitle: string;
-  price: number;
-  source: string;
-};
+import { AvailableAlbum } from "../AvailableAlbum.ts";
+
+export type StockAvailableEvent = AvailableAlbum
