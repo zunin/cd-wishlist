@@ -1,6 +1,6 @@
 import * as CloudEvents from "cloudevents";
 import { CloudEvent, CloudEventV1 } from "cloudevents";
-import { Application, Router, Status } from "@oak/oak";
+import { Application, Context, Router, Status } from "@oak/oak";
 import { zip } from "@std/collections";
 import { compareSimilarity } from "@std/text";
 import { SubscriptionEvent } from "./events/SubscriptionEvent.ts";
@@ -37,7 +37,7 @@ router.post("/", async (ctx) => {
     emitAlbumsForSubscriptions(receivedEvent);
 
     ctx.response.status = Status.Created;
-});     
+});
 
 router.post("/sources/github", async (ctx) => {
     const headers = ctx.request.headers;
@@ -103,9 +103,11 @@ router.get("/subscriptions/:eventId", async (ctx) => {
     return ctx.response.redirect("/?" + prefilledData.toString());
 });
 
-router.get("/api", async (ctx) => {
-    const content = await Deno.readTextFile("./openapispec.html");
-    ctx.response.body = content;
+router.get("/favicon.ico", async (ctx: Context) => {
+    await ctx.send({
+        root: `${Deno.cwd()}`,
+        index: "favicon.ico",
+    });
 });
 
 function makeEventsFromAvailableAlbums(
@@ -155,14 +157,12 @@ async function emitAlbumsForSubscriptions(
         CloudEvents.httpTransport(event.data?.url!),
     );
 
-    const cd6000 =
-        await (await fetch(
-            "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json",
-        )).json() as AvailableAlbum[];
-    const rytmeboxen =
-        await (await fetch(
-            "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json",
-        )).json() as AvailableAlbum[];
+    const cd6000 = await (await fetch(
+        "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json",
+    )).json() as AvailableAlbum[];
+    const rytmeboxen = await (await fetch(
+        "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json",
+    )).json() as AvailableAlbum[];
 
     const availableAlbums = cd6000.concat(rytmeboxen);
 
@@ -180,5 +180,21 @@ function contains(a: string, b: string): boolean {
 const app = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+// static content
+app.use(async (context, next) => {
+    const root = `${Deno.cwd()}/components`;
+    const fileName = context.request.url.pathname.replace("/components", "");
+    try {
+        await context.send({
+            root: root,
+            path: fileName,
+        });
+    } catch {
+        next();
+    }
+});
+
+// serve favoicon.ico
 
 app.listen({ port: 80 });

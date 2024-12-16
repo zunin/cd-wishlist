@@ -1,6 +1,6 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css">    
     <style>
         body {
             margin: 1em;
@@ -11,24 +11,8 @@
 <body>
     <h1>Get notified when used CD markets have your cd</h1>
     <input type="hidden" name="subscriptionId">
-    <form id="form">
-        <label for="url">Webhook url:</label>
-        <input type="url" name="url">
-                    <br>
-        <fieldset>  
-            <legend>Items to subscribe to</legend>
-            <input type="hidden" name="artist">
-            <input type="hidden" name="albumtitle">
-            <label for="artist">Arist:</label>
-            <input type="text" name="artist">
-            <label for="albumtitle">Album:</label>
-            <input type="text" name="albumtitle">
-        </fieldset>
-        <br>
-            <button type="button" id="addrow">Add item</button>
-        <br><br>
-        <input type="submit" value="Submit">
-    </form>
+    <wishlist-form id="form">
+    </wishlist-form>
     <h1>Help</h1>
     <details>
         <summary>I want a push notifcation, not a webhook</summary>
@@ -48,13 +32,6 @@
     source: "http://cd6000.dk/"
 }</pre></code>
 </details>
-    <template id="itemrow">
-        <br>
-        <label for="artist">Arist:</label>
-        <input type="text" name="artist">
-        <label for="albumtitle">Album:</label>
-        <input type="text" name="albumtitle">
-    </template>
 </body>
 <script>
     const subscriptionId = new URL(document.documentURI).searchParams.get("subscriptionId") ?? self.crypto.randomUUID();
@@ -75,15 +52,6 @@
     document.dispatchEvent(setSubscriptionIdEvent);
 </script>
 <script>
-    function addArtistAndAlbumRow(event) {
-        const template = document.getElementById("itemrow");
-        const [fieldSet] = [...document.getElementsByTagName("fieldset")];
-        const clone = template.content.cloneNode(true);
-        fieldSet.appendChild(clone);
-    }
-    document.getElementById("form").addEventListener("addArtistAndAlbumRow", addArtistAndAlbumRow);
-</script>
-<script>
     const queryParams = new URL(document.documentURI).searchParams;
     for(let i = 1; i < queryParams.getAll("artist").length; i++) {
         document.getElementById("form")
@@ -94,8 +62,8 @@
         .getElementsByTagName("input")]
         .filter(inputElement => !["submit", "hidden"].some(type => type === inputElement.getAttribute("type")));
     
-    const [urlInput] = inputs.filter(inputElement => inputElement.getAttribute("name") === "url")
-    urlInput.value = queryParams.get("url");
+    //const [urlInput] = inputs.filter(inputElement => inputElement.getAttribute("name") === "url")
+    //urlInput.value = queryParams.get("url");
 
     const zip = (a, b) => a.map((k, i) => [k, b[i]]);
 
@@ -150,11 +118,11 @@
     }
     formElem.addEventListener("submit", submit);
 </script>
-<script>
-    document.getElementById("addrow")
-        .addEventListener("click", () => {
-            document.getElementById("form")
-            .dispatchEvent(new Event("addArtistAndAlbumRow"))
-        })
-</script>
+<script src="components/artist-input.js"></script>
+<script src="components/album-input.js"></script>
+<script src="components/add-row-button.js"></script>
+<script src="components/submit-button.js"></script>
+<script src="components/webhook-input.js"></script>
+<script src="components/wishlist-form.js"></script>
+
 </html>
