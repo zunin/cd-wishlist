@@ -13,6 +13,7 @@
     "npm:@types/node@*": "18.16.19",
     "npm:cloudevents@9.0.0": "9.0.0_ajv@8.17.1",
     "npm:create-hono@*": "0.18.0",
+    "npm:htmx.org@1.9.12": "1.9.12",
     "npm:path-to-regexp@6.2.1": "6.2.1"
   },
   "jsr": {
@@ -232,6 +233,9 @@
     "hono@4.7.9": {
       "integrity": "sha512-/EsCoR5h7N4yu01TDu9GMCCJa6ZLk5ZJIWFFGNawAXmd1Tp53+Wir4xm0D2X19bbykWUlzQG0+BvPAji6p9E8Q=="
     },
+    "htmx.org@1.9.12": {
+      "integrity": "sha512-VZAohXyF7xPGS52IM8d1T1283y+X4D+Owf3qY1NZ9RuBypyu9l8cGsxUMAG5fEAb/DhT7rDoJ9Hpu5/HxFD3cw=="
+    },
     "inherits@2.0.4": {
       "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="
     },
@@ -365,7 +369,8 @@
       "jsr:@std/uuid@^1.0.7",
       "npm:@hono/swagger-ui@0.5.1",
       "npm:@hono/zod-openapi@0.19.6",
-      "npm:cloudevents@9.0.0"
+      "npm:cloudevents@9.0.0",
+      "npm:htmx.org@1.9.12"
     ]
   }
 }

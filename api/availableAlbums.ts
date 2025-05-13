@@ -1,5 +1,7 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { Release } from "../models/Release.ts";
+import { z } from '@hono/zod-openapi'
+import { AlbumArtistSearchCompoennt } from "../index.tsx";
 
 const route = createRoute({
   method: "get",
@@ -10,6 +12,9 @@ const route = createRoute({
         "application/json": {
           schema: Release.array(),
         },
+        "text/html": {
+          schema: z.string()
+        }
       },
       description: "Retrieve available albums",
     },
@@ -17,6 +22,9 @@ const route = createRoute({
 });
 
 export default new OpenAPIHono().openapi(route, async (c) => {
+  if (c.req.header('accept') === "text/html") {
+    return c.html(`${AlbumArtistSearchCompoennt}`);
+  }
   const cd6000 =
         await (await fetch(
             "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json",

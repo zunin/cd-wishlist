@@ -1,35 +1,35 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "deno",
-			"command": "run",
-			"args": [
-				"--allow-net",
-				"--unstable-kv",
-				"--allow-env=CE_USE_BIG_INT,NODE_EXTRA_CA_CERTS",
-				"--allow-read=submit.html",
-				"--watch=*.ts,*.tsx",
-				"index.ts"
-			],
-			"problemMatcher": [
-				"$deno"
-			],
-			"label": "deno: run"
-		},
-		{
-			"type": "deno",
-			"command": "test",
-			"problemMatcher": [
-				"$deno-test"
-			],
-			"group": "test",
-			"label": "deno: test"
-		},
-		{
-			"type": "deno",
-			"command": "install",
-			"label": "deno: install"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "deno",
+      "command": "run",
+      "args": [
+        "--allow-net",
+        "--unstable-kv",
+        "--allow-env=CE_USE_BIG_INT,NODE_EXTRA_CA_CERTS",
+        "--allow-read=submit.html",
+        "--watch=*.ts,*.tsx",
+        "index.ts"
+      ],
+      "problemMatcher": [
+        "$deno"
+      ],
+      "label": "deno: run"
+    },
+    {
+      "type": "deno",
+      "command": "test",
+      "problemMatcher": [
+        "$deno-test"
+      ],
+      "group": "test",
+      "label": "deno: test"
+    },
+    {
+      "type": "deno",
+      "command": "install",
+      "label": "deno: install"
+    }
+  ]
 }
