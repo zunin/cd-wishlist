@@ -9,8 +9,8 @@
 				"--unstable-kv",
 				"--allow-env=CE_USE_BIG_INT,NODE_EXTRA_CA_CERTS",
 				"--allow-read=submit.html",
-				"--watch=*.ts",
-				"index.ts"
+				"--watch=*.ts,*.tsx",
+				"main.ts"
 			],
 			"problemMatcher": [
 				"$deno"
@@ -25,6 +25,11 @@
 			],
 			"group": "test",
 			"label": "deno: test"
+		},
+		{
+			"type": "deno",
+			"command": "install",
+			"label": "deno: install"
 		}
 	]
 }
