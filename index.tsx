@@ -1,7 +1,10 @@
-import { type FC, Fragment, InputEvent, useState } from "hono/jsx";
-import { render } from "hono/jsx/dom";
-import { MusicbrainzMeta, Release, ReleaseSchema } from "./models/Release.ts";
-import { resourceLimits } from "node:worker_threads";
+import { type FC } from "hono/jsx";
+import { Style, css } from "hono/css";
+import { AlbumArtistSearch } from "./components/AlbumArtistSearch.tsx";
+
+const bodyClass = css`
+    margin: 1em;
+`;
 
 const Layout: FC = (props) => {
   return (
@@ -13,8 +16,94 @@ const Layout: FC = (props) => {
           href="https://unpkg.com/marx-css/css/marx.min.css"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+         <Style>{css`
+          .stack {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+          }
+
+          .stack > * {
+            margin-block: 0;
+          } 
+
+          .stack > * + * {
+            margin-block-start: var(--space, 1.5rem);
+          }
+          .box {
+            padding: var(--s1);
+            border: var(--border-thin) solid;
+            --color-light: #fff;
+            --color-dark: #000;
+            color: var(--color-dark);
+            background-color: var(--color-light);
+          }
+
+          .box * {
+            color: inherit;
+          }
+
+          .box.invert {
+            color: var(--color-light);
+            background-color: var(--color-dark);
+          }
+
+          .cluster {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space, 1rem);
+            justify-content: flex-start;
+            align-items: center;
+          }
+
+          .grid {
+            display: grid;
+            grid-gap: 1rem;
+          }
+
+          @supports (width: min(250px, 100%)) {
+            .grid {
+              grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+            }
+          }
+
+
+          .with-sidebar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--s1);
+          }
+
+          .with-sidebar > :first-child {
+            flex-grow: 1;
+          }
+
+          .with-sidebar > :last-child {
+            flex-basis: 0;
+            flex-grow: 999;
+            min-inline-size: 50%;
+          }
+            
+          .frame {
+            --n: 300;
+            --d: 218;
+            aspect-ratio: var(--n) / var(--d);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .frame > img,
+          .frame > video {
+            inline-size: 100%;
+            block-size: 100%;
+            object-fit: cover;
+          }
+
+         `}</Style>
       </head>
-      <body style={{ margin: "1em" }}>
+      <body class={bodyClass}>
         {props.children}
 
         <script
@@ -29,64 +118,12 @@ const Layout: FC = (props) => {
 };
 
 
-const AlbumArtistSearch: FC = (props) => {
-  return (
-    <div>
-      <label for="artist">Artist:</label>
-      <input
-        type="text"
-        name="artist"
-        hx-get="/api/releaseGroup"
-        hx-include="[name='albumTitle']"
-        hx-trigger="input changed delay:1s"
-        hx-headers='{"Accept": "text/html"}'
-        hx-target="#searchArea"
-        hx-swap="innerHTML"  
-      />
-      <label for="albumtitle">Album:</label>
-      <input
-        type="text"
-        name="albumTitle"
-        hx-get="/api/releaseGroup"
-        hx-include="[name='artist']"
-        hx-trigger="input changed delay:1s"
-        hx-headers='{"Accept": "text/html"}'
-        hx-target="#searchArea"
-        hx-swap="innerHTML"  
-      />
-      <div id="searchArea">No idea</div>
-    </div>
-    
-  );
-};
-export const AlbumArtistResultListComponent = (results: MusicbrainzMeta[]) => <AlbumArtistResultList results={results} ></AlbumArtistResultList>
 
-
-const AlbumArtistResultList: FC<{results: MusicbrainzMeta[]}> = (
-  {results}
-) => {
-  return (
-    <Fragment>
-      {results.map((mbMeta) => {
-        return <Fragment key={mbMeta.releaseGroupId}>
-          <p>
-          artist: '{mbMeta.artist}'<p>
-          </p>{" "}
-          album: '{mbMeta.albumTitle}'
-        </p>
-        <br/>
-        </Fragment>
-      })}
-      
-    </Fragment>
-  );
-};
 
 const App: FC = (props) => {
   return (
     <Layout>
       <h1>Get notified when used CD markets have your cd</h1>
-      <input type="hidden" name="subscriptionId" />
       <form id="form">
         <fieldset id="fieldset">
           <legend>Items to subscribe to</legend>
@@ -96,11 +133,6 @@ const App: FC = (props) => {
         <button
           type="button"
           id="addrow"
-          hx-get="/api/availableAlbums"
-          hx-headers='{"Accept": "text/html"}'
-          hx-trigger="click"
-          hx-target="fieldset"
-          hx-swap="afterend"
         >
           Add item
         </button>
