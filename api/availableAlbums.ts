@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { ReleaseSchema } from "../models/Release.ts";
+import { Release, ReleaseSchema } from "../models/Release.ts";
 import { z } from '@hono/zod-openapi'
 import { AlbumArtistSearchCompoennt } from "../index.tsx";
 

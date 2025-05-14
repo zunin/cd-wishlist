@@ -19,7 +19,7 @@ export const AlbumArtistSearch: FC = (props) => {
         name="albumTitle"
         hx-get="/api/releaseGroup"
         hx-include="[name='artist']"
-        hx-trigger="input changed delay:1s"
+        hx-trigger="input changed delay:1s, load"
         hx-headers='{"Accept": "text/html"}'
         hx-target="#searchArea"
         hx-swap="innerHTML" />
