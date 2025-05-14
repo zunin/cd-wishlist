@@ -7,8 +7,8 @@
       "args": [
         "--allow-net",
         "--unstable-kv",
-        "--allow-env=CE_USE_BIG_INT,NODE_EXTRA_CA_CERTS",
-        "--allow-read=submit.html",
+        "--allow-env",
+        "--allow-read",
         "--watch=*.ts,*.tsx",
         "index.ts"
       ],

@@ -1,5 +1,7 @@
 import { type FC, Fragment, InputEvent, useState } from "hono/jsx";
 import { render } from "hono/jsx/dom";
+import { MusicbrainzMeta, Release, ReleaseSchema } from "./models/Release.ts";
+import { resourceLimits } from "node:worker_threads";
 
 const Layout: FC = (props) => {
   return (
@@ -28,54 +30,54 @@ const Layout: FC = (props) => {
 
 
 const AlbumArtistSearch: FC = (props) => {
-  const [artistQuery, setArtistQuery] = useState("album");
-  const handleArtistQueryChange = (event: InputEvent) => {
-    const value = event.target.value;
-    setArtistQuery(value);
-  };
-
-  const [albumQuery, setAlbumQuery] = useState("");
-  const handleAlbumQueryChange = (event: InputEvent) => {
-    const value = event.target.value;
-
-    setAlbumQuery(value);
-  };
-
   return (
-    <Fragment>
+    <div>
       <label for="artist">Artist:</label>
       <input
         type="text"
         name="artist"
-        onChange={handleArtistQueryChange}
-        value={artistQuery}
+        hx-get="/api/releaseGroup"
+        hx-include="[name='albumTitle']"
+        hx-trigger="input changed delay:1s"
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#searchArea"
+        hx-swap="innerHTML"  
       />
       <label for="albumtitle">Album:</label>
       <input
         type="text"
-        name="albumtitle"
-        onChange={handleAlbumQueryChange}
-        value={albumQuery}
+        name="albumTitle"
+        hx-get="/api/releaseGroup"
+        hx-include="[name='artist']"
+        hx-trigger="input changed delay:1s"
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#searchArea"
+        hx-swap="innerHTML"  
       />
-      <AlbumArtistResultList albumQuery={albumQuery} artistQuery={artistQuery}>
-      </AlbumArtistResultList>
-    </Fragment>
+      <div id="searchArea">No idea</div>
+    </div>
+    
   );
 };
+export const AlbumArtistResultListComponent = (results: MusicbrainzMeta[]) => <AlbumArtistResultList results={results} ></AlbumArtistResultList>
 
-export const AlbumArtistSearchCompoennt = <AlbumArtistSearch></AlbumArtistSearch>
 
-
-const AlbumArtistResultList: FC<{ artistQuery: string; albumQuery: string }> = (
-  { albumQuery, artistQuery },
+const AlbumArtistResultList: FC<{results: MusicbrainzMeta[]}> = (
+  {results}
 ) => {
   return (
     <Fragment>
-      <p>
-        artist: '{artistQuery}'<p>
-        </p>{" "}
-        album: '{albumQuery}'
-      </p>
+      {results.map((mbMeta) => {
+        return <Fragment key={mbMeta.releaseGroupId}>
+          <p>
+          artist: '{mbMeta.artist}'<p>
+          </p>{" "}
+          album: '{mbMeta.albumTitle}'
+        </p>
+        <br/>
+        </Fragment>
+      })}
+      
     </Fragment>
   );
 };

@@ -8,7 +8,8 @@
     "@std/text": "jsr:@std/text@^1.0.13",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "cloudevents": "npm:cloudevents@9.0.0",
-    "htmx": "npm:htmx.org@1.9.12"
+    "musicbrainz-api": "npm:musicbrainz-api@0.21.0",
+    "@std/async": "jsr:@std/async@^1.0.6"
   },
   "tasks": {
     "start": "deno run --allow-net main.ts"
