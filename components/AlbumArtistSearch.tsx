@@ -12,7 +12,10 @@ export const AlbumArtistSearch: FC = (props) => {
         hx-trigger="input changed delay:1s"
         hx-headers='{"Accept": "text/html"}'
         hx-target="#searchArea"
-        hx-swap="innerHTML" />
+        hx-swap="innerHTML" 
+        hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
+
+      />
       <label for="albumtitle">Album:</label>
       <input 
         type="text"
@@ -22,7 +25,10 @@ export const AlbumArtistSearch: FC = (props) => {
         hx-trigger="input changed delay:1s, load"
         hx-headers='{"Accept": "text/html"}'
         hx-target="#searchArea"
-        hx-swap="innerHTML" />
+        hx-swap="innerHTML" 
+        hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
+
+      />
       <div id="searchArea">No idea</div>
     </div>
 

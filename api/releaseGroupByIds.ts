@@ -11,23 +11,7 @@ const route = createRoute({
   path: "/",
   request: {
     query: z.object({
-      id: z.string().array().or(z.string()),
-      artist: z.string()
-        .openapi({
-          param: {
-            name: "artist",
-            in: "query",
-          },
-          example: "ABBA",
-        }),
-      albumTitle: z.string()
-        .openapi({
-          param: {
-            name: "albumTitle",
-            in: "query",
-          },
-          example: "Gold",
-        }),
+      id: z.string().array().or(z.string())
     }),
   },
   responses: {
@@ -57,11 +41,12 @@ const route = createRoute({
 const musicBrainzClient = new MusicBrainzClient();
 
 export default new OpenAPIHono().openapi(route, async (c) => {
-  const { albumTitle, artist, id: idInput } = c.req.valid("query");
+  const { id: idInput } = c.req.valid("query");
   const ids = typeof idInput === "string" ? [idInput] : idInput;
 
-  
-  if (!albumTitle || !artist) {
+  console.log("ids", ids)
+
+  if (!ids || ids.length === 0) {
     if (c.req.header("Accept") === "application/json") {
       return c.json([]);
     }
@@ -80,7 +65,11 @@ export default new OpenAPIHono().openapi(route, async (c) => {
   
   const availableReleases = cd6000.concat(rytmeboxen);
 
-  const musicBrainzHits = await musicBrainzClient.getMusicBrainzHits(artist, albumTitle);
+  
+  const musicBrainzHits = []
+  for (const id of ids) {
+    musicBrainzHits.push(await musicBrainzClient.getMusicBrainzHit(id));
+  }
   const hits = musicBrainzHits.map(musicBrainz => {
     return {
         musicBrainz,
@@ -92,7 +81,7 @@ export default new OpenAPIHono().openapi(route, async (c) => {
     return c.json(hits);
   }
   if (hits.length === 0) {
-    return c.html(`<p>No results found for '<i>${artist} - ${albumTitle}</i>'</p>`)
+    return c.html(`<p>No releases saved to wishlist</p>`)
   }
 
   return c.html(`${AlbumArtistResultListComponent(ids, hits)}`);

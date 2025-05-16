@@ -1,6 +1,7 @@
 import { type FC } from "hono/jsx";
 import { Style, css } from "hono/css";
 import { AlbumArtistSearch } from "./components/AlbumArtistSearch.tsx";
+import { Wishlist } from "./components/Wishlist.tsx";
 
 const bodyClass = css`
     margin: 1em;
@@ -17,6 +18,7 @@ const Layout: FC = (props) => {
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
          <Style>{css`
+          
           .stack {
             display: flex;
             flex-direction: column;
@@ -140,6 +142,7 @@ const App: FC = (props) => {
         <br />
         <input type="submit" value="Submit" />
       </form>
+      <Wishlist></Wishlist>
     </Layout>
   );
 };

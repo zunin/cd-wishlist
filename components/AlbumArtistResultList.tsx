@@ -2,8 +2,8 @@ import { Fragment, type FC } from "hono/jsx";
 import { Release } from "../models/Release.ts";
 import { MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
 
-const AlbumArtistResultList: FC<{ results: Array<{musicBrainz: MusicbrainzMeta, available: Release[]}> }> = (props) => {
-  const { results } = props;
+const AlbumArtistResultList: FC<{ wishlist: Array<string>, results: Array<{musicBrainz: MusicbrainzMeta, available: Release[]}> }> = (props) => {
+  const { results, wishlist } = props;
   return (
     <div class="grid">
       {results.map((meta) => {
@@ -27,7 +27,20 @@ const AlbumArtistResultList: FC<{ results: Array<{musicBrainz: MusicbrainzMeta, 
               return <p key={record.origin}>{record.price} at <a href={record.origin}>{URL.parse(record.origin)?.host}</a></p>
             }) : <Fragment></Fragment>}
 
-            <button type="button">Add to wishlist</button>
+            {wishlist.some(id => musicBrainz.releaseGroupId === id) ?
+              <button 
+              type="button"
+              hx-trigger="click"
+              onclick="localStorage.setItem('wishlist', JSON.stringify( [...new Set([...(JSON.parse(localStorage.getItem('wishlist')) || [])].filter(cache => cache !== this.parentElement.parentElement.getAttribute('key'))  )]  ))"
+              >Remove from wishlist</button> : 
+              <button 
+                type="button"
+                hx-trigger="click"
+                onclick="localStorage.setItem('wishlist', JSON.stringify( [...new Set([...(JSON.parse(localStorage.getItem('wishlist')) || []), this.parentElement.parentElement.getAttribute('key')])]  ))"
+              >Add to wishlist</button>
+            }
+            
+            
             </div>
           </div>
         );
@@ -36,6 +49,6 @@ const AlbumArtistResultList: FC<{ results: Array<{musicBrainz: MusicbrainzMeta, 
   );
 };
 
-export const AlbumArtistResultListComponent = (results: Array<{musicBrainz: MusicbrainzMeta, available: Release[]}>) => (
-  <AlbumArtistResultList results={results}></AlbumArtistResultList>
+export const AlbumArtistResultListComponent = (wishlist: Array<string>, results: Array<{musicBrainz: MusicbrainzMeta, available: Release[]}>) => (
+  <AlbumArtistResultList wishlist={wishlist} results={results}></AlbumArtistResultList>
 );

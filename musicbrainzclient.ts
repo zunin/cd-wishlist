@@ -1,8 +1,7 @@
 import { IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
 import { compareSimilarity } from "jsr:@std/text";
 import { delay } from "@std/async/delay";
-import { release } from "node:os";
-import { MusicbrainzMeta } from "./models/Release.ts";
+import { MusicbrainzMeta } from "./models/MusicbrainzMeta.ts";
 
 export class MusicBrainzClient {
   private mbApi: MusicBrainzApi;
@@ -13,6 +12,22 @@ export class MusicBrainzClient {
       appVersion: "0.0.1",
       appContactInfo: "https://github.com/zunin/cd-wishlist",
     });
+  }
+
+  async getMusicBrainzHit(
+    releaseGroupId: string,
+  ): Promise<MusicbrainzMeta> {
+    const searchResult = await this.mbApi.lookup("release-group", releaseGroupId, ["artist-credits"]);
+    return {
+      releaseGroupId,
+      albumTitle: searchResult.title,
+      artist: searchResult["artist-credit"]
+        .map((x) => x.artist.name)
+        .join(
+          ", ",
+        ),
+      type: searchResult["primary-type"],
+    } as MusicbrainzMeta;
   }
 
   async getMusicBrainzHits(
