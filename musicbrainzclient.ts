@@ -144,8 +144,8 @@ export class MusicBrainzClient {
     const artistQuery = [`artist:"${artist.name}"`]
       .join(" OR ");
 
-    const query = `(${artistQuery})`;
-
+    const query = `${artistQuery} AND type:"Album" AND NOT type:"Live" and NOT type:"Compilation" and NOT type:"Demo" and NOT type:"Remix"`;
+    console.log(query)
     try {
       const releaseGroupSearchResult = await this.mbApi.search(
         "release-group",

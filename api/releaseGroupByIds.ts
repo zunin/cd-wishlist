@@ -8,6 +8,7 @@ import {
   MusicbrainzMeta,
   MusicbrainzMetaSchema,
 } from "../models/MusicbrainzMeta.ts";
+import ReleaseHistoryRepository from "../releaseHistoryRepository.ts";
 
 const route = createRoute({
   method: "get",
@@ -48,21 +49,12 @@ export default new OpenAPIHono().openapi(route, async (c) => {
   const ids = typeof idInput === "string" ? [idInput] : idInput;
 
   if (!ids || ids.length === 0) {
-    if (c.req.header("Accept") === "application/json"
-  ) {
+    if (c.req.header("Accept") === "application/json") {
       return c.json([]);
     }
     return c.html(`Write something in artist and album title to search`);
   }
-
-  const cd6000 = await (await fetch(
-    "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json",
-  )).json() as Release[];
-  const rytmeboxen = await (await fetch(
-    "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json",
-  )).json() as Release[];
-
-  const availableReleases = cd6000.concat(rytmeboxen);
+  const availableReleases = await ReleaseHistoryRepository.get();
 
   const musicBrainzHits = [];
   for (const id of ids) {

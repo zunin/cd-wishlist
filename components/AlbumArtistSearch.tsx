@@ -4,7 +4,7 @@ export const AlbumArtistSearch: FC = (props) => {
   return (
     <div>
       <label for="artist">Artist:</label>
-      <input 
+      <input
         type="text"
         name="artist"
         hx-get="/api/releaseGroup"
@@ -12,12 +12,12 @@ export const AlbumArtistSearch: FC = (props) => {
         hx-trigger="input changed delay:1s"
         hx-headers='{"Accept": "text/html"}'
         hx-target="#searchArea"
-        hx-swap="innerHTML" 
+        hx-swap="innerHTML"
         hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
-
+        hx-indicator="#throbber"
       />
       <label for="albumtitle">Album:</label>
-      <input 
+      <input
         type="text"
         name="albumTitle"
         hx-get="/api/releaseGroup"
@@ -25,13 +25,16 @@ export const AlbumArtistSearch: FC = (props) => {
         hx-trigger="input changed delay:1s, load"
         hx-headers='{"Accept": "text/html"}'
         hx-target="#searchArea"
-        hx-swap="innerHTML" 
+        hx-swap="innerHTML"
         hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
-
+        hx-indicator="#throbber"
       />
-      <div id="searchArea">No idea</div>
+      <img
+        id="throbber"
+        class="htmx-indicator"
+        src="https://upload.wikimedia.org/wikipedia/commons/f/f8/Ajax-loader%282%29.gif"
+      />
+      <div id="searchArea"></div>
     </div>
-
   );
 };
-

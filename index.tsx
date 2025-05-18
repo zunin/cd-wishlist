@@ -1,10 +1,10 @@
 import { type FC } from "hono/jsx";
-import { Style, css } from "hono/css";
+import { css, Style } from "hono/css";
 import { AlbumArtistSearch } from "./components/AlbumArtistSearch.tsx";
 import { Wishlist } from "./components/Wishlist.tsx";
 
 const bodyClass = css`
-    margin: 1em;
+  margin: 1em;
 `;
 
 const Layout: FC = (props) => {
@@ -17,116 +17,126 @@ const Layout: FC = (props) => {
           href="https://unpkg.com/marx-css/css/marx.min.css"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-         <Style>{css`
-          
-          .stack {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-          }
-
-          .stack > * {
-            margin-block: 0;
-          } 
-
-          .stack > * + * {
-            margin-block-start: var(--space, 1.5rem);
-          }
-          .box {
-            padding: var(--s1);
-            border: var(--border-thin) solid;
-            --color-light: #fff;
-            --color-dark: #000;
-            color: var(--color-dark);
-            background-color: var(--color-light);
-          }
-
-          .box * {
-            color: inherit;
-          }
-
-          .box.invert {
-            color: var(--color-light);
-            background-color: var(--color-dark);
-          }
-
-          .cluster {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space, 1rem);
-            justify-content: flex-start;
-            align-items: center;
-          }
-
-          .grid {
-            display: grid;
-            grid-gap: 1rem;
-          }
-
-          @supports (width: min(250px, 100%)) {
-            .grid {
-              grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+        <Style>
+          {css`
+            .stack {
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
             }
-          }
 
+            .stack > * {
+              margin-block: 0;
+            }
 
-          .with-sidebar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--s1);
-          }
+            .stack > * + * {
+              margin-block-start: var(--space, 1.5rem);
+            }
+            .box {
+              padding: var(--s1);
+              border: var(--border-thin) solid;
+              --color-light: #fff;
+              --color-dark: #000;
+              color: var(--color-dark);
+              background-color: var(--color-light);
+            }
 
-          .with-sidebar > :first-child {
-            flex-grow: 1;
-          }
+            .box * {
+              color: inherit;
+            }
 
-          .with-sidebar > :last-child {
-            flex-basis: 0;
-            flex-grow: 999;
-            min-inline-size: 50%;
-          }
-            
-          .frame {
-            --n: 300;
-            --d: 218;
-            aspect-ratio: var(--n) / var(--d);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
+            .box.invert {
+              color: var(--color-light);
+              background-color: var(--color-dark);
+            }
 
-          .frame > img,
-          .frame > video {
-            inline-size: 100%;
-            block-size: 100%;
-            object-fit: cover;
-          }
+            .cluster {
+              display: flex;
+              flex-wrap: wrap;
+              gap: var(--space, 1rem);
+              justify-content: flex-start;
+              align-items: center;
+            }
 
-          .cover {
-            display: flex;
-            flex-direction: column;
-            min-block-size: 35vh;
-            padding: 1rem;
-          }
+            .grid {
+              display: grid;
+              grid-gap: 1rem;
+            }
 
-          .cover > * {
-            margin-block: 1rem;
-          }
+            @supports (width: min(250px, 100%)) {
+              .grid {
+                grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+              }
+            }
 
-          .cover > :first-child:not(img) {
-            margin-block-start: 0;
-          }
+            .with-sidebar {
+              display: flex;
+              flex-wrap: wrap;
+              gap: var(--s1);
+            }
 
-          .cover > :last-child:not(img) {
-            margin-block-end: 0;
-          }
+            .with-sidebar > :first-child {
+              flex-grow: 1;
+            }
 
-          .cover > img {
-            margin-block: auto;
-          }
+            .with-sidebar > :last-child {
+              flex-basis: 0;
+              flex-grow: 999;
+              min-inline-size: 50%;
+            }
 
-         `}</Style>
+            .frame {
+              --n: 300;
+              --d: 218;
+              aspect-ratio: var(--n) / var(--d);
+              overflow: hidden;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+
+            .frame > img,
+            .frame > video {
+              inline-size: 100%;
+              block-size: 100%;
+              object-fit: cover;
+            }
+
+            .cover {
+              display: flex;
+              flex-direction: column;
+              min-block-size: 35vh;
+              padding: 1rem;
+            }
+
+            .cover > * {
+              margin-block: 1rem;
+            }
+
+            .cover > :first-child:not(img) {
+              margin-block-start: 0;
+            }
+
+            .cover > :last-child:not(img) {
+              margin-block-end: 0;
+            }
+
+            .cover > img {
+              margin-block: auto;
+            }
+
+            .htmx-indicator{
+                opacity:0;
+                transition: opacity 500ms ease-in;
+            }
+            .htmx-request .htmx-indicator{
+                opacity:1;
+            }
+            .htmx-request.htmx-indicator{
+                opacity:1;
+            }
+          `}
+        </Style>
       </head>
       <body class={bodyClass}>
         {props.children}
@@ -142,29 +152,12 @@ const Layout: FC = (props) => {
   );
 };
 
-
-
-
 const App: FC = (props) => {
   return (
     <Layout>
       <h1>Get notified when used CD markets have your cd</h1>
-      <form id="form">
-        <fieldset id="fieldset">
-          <legend>Items to subscribe to</legend>
-          <AlbumArtistSearch></AlbumArtistSearch>
-        </fieldset>
-        <br />
-        <button
-          type="button"
-          id="addrow"
-        >
-          Add item
-        </button>
-        <br />
-        <br />
-        <input type="submit" value="Submit" />
-      </form>
+      <legend>Items to subscribe to</legend>
+      <AlbumArtistSearch></AlbumArtistSearch>
       <Wishlist></Wishlist>
     </Layout>
   );
