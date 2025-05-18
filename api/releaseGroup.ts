@@ -61,7 +61,7 @@ export default new OpenAPIHono().openapi(route, async (c) => {
   const ids = typeof idInput === "string" ? [idInput] : idInput;
 
   
-  if (!albumTitle || !artist) {
+  if (!artist) {
     if (c.req.header("Accept") === "application/json") {
       return c.json([]);
     }

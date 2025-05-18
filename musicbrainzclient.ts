@@ -36,6 +36,10 @@ export class MusicBrainzClient {
   ): Promise<MusicbrainzMeta[]> {
     const artists = await this.getArtists(artist);
 
+    if (!albumTitle) {
+        return await this.getReleaseGroupsForArtist(artists[0]);
+    }
+
     for (const artist of artists) {
       const hits = await this.queryArtistForReleaseGroup(albumTitle, artist);
       if (hits !== null) {
@@ -129,6 +133,42 @@ export class MusicBrainzClient {
             artist
           );
         }
+      }
+    } catch (_) { /* Empty */ }
+    return [];
+  }
+
+  private async getReleaseGroupsForArtist(
+    artist: IArtistMatch
+  ): Promise<MusicbrainzMeta[]> {
+    const artistQuery = [`artist:"${artist.name}"`]
+      .join(" OR ");
+
+    const query = `(${artistQuery})`;
+
+    try {
+      const releaseGroupSearchResult = await this.mbApi.search(
+        "release-group",
+        { query },
+      );
+      const sortedReleaseGroupSearchResult =
+        releaseGroupSearchResult["release-groups"];
+
+      const hits = []
+
+      for (const searchResult of  sortedReleaseGroupSearchResult) {
+        hits.push({
+            releaseGroupId: searchResult.id,
+            albumTitle: searchResult.title,
+            artist: searchResult["artist-credit"].map((x) => x.artist.name)
+              .join(
+                ", ",
+              ),
+            type: searchResult["primary-type"],
+          } as MusicbrainzMeta);
+      }
+      if (hits.length > 0) {
+        return hits;
       }
     } catch (_) { /* Empty */ }
     return [];
