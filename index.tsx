@@ -103,6 +103,29 @@ const Layout: FC = (props) => {
             object-fit: cover;
           }
 
+          .cover {
+            display: flex;
+            flex-direction: column;
+            min-block-size: 35vh;
+            padding: 1rem;
+          }
+
+          .cover > * {
+            margin-block: 1rem;
+          }
+
+          .cover > :first-child:not(img) {
+            margin-block-start: 0;
+          }
+
+          .cover > :last-child:not(img) {
+            margin-block-end: 0;
+          }
+
+          .cover > img {
+            margin-block: auto;
+          }
+
          `}</Style>
       </head>
       <body class={bodyClass}>
