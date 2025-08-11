@@ -1,8 +1,5 @@
 {
   "imports": {
-    "hono": "jsr:@hono/hono@^4.7.9",
-    "@hono/swagger-ui": "npm:@hono/swagger-ui@0.5.1",
-    "@hono/zod-openapi": "npm:@hono/zod-openapi@0.19.6",
     "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/text": "jsr:@std/text@^1.0.13",
@@ -12,10 +9,23 @@
     "@std/async": "jsr:@std/async@^1.0.6"
   },
   "tasks": {
-    "start": "deno run --allow-net main.ts"
+    "dev": "deno run -A npm:vite & deno run server:start",
+    "build": "deno run -A npm:vite build",
+    "server:start": "deno run -A --watch ./api/main.ts",
+    "serve": "deno run build && deno run server:start"
   },
   "compilerOptions": {
-    "jsx": "precompile",
-    "jsxImportSource": "hono/jsx"
+    "types": [
+        "react",
+        "react-dom",
+        "@types/react"
+    ],
+    "lib": [
+        "dom",
+        "dom.iterable",
+        "deno.ns"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }

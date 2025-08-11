@@ -5,12 +5,7 @@
       "type": "deno",
       "command": "run",
       "args": [
-        "--allow-net",
-        "--unstable-kv",
-        "--allow-env",
-        "--allow-read",
-        "--watch=*.ts,*.tsx",
-        "index.ts"
+        "dev"
       ],
       "problemMatcher": [
         "$deno"
