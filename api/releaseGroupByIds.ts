@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
 
-import { MusicBrainzClient } from "../musicbrainzclient.ts";
+import { MusicBrainzClient } from "../src/musicbrainzclient.ts";
 import { Release, ReleaseSchema } from "../models/Release.ts";
 import { AlbumArtistResultListComponent } from "../components/AlbumArtistResultList.tsx";
 import {

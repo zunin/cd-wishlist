@@ -1,4 +1,4 @@
-import { Fragment, type FC } from "hono/jsx";
+import { FC } from "react";
 
 export const Wishlist: FC = (props) => {
     return (<div>

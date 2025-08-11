@@ -1,9 +1,9 @@
-import { type FC, Fragment } from "hono/jsx";
 import { Release } from "../models/Release.ts";
 import { MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
+import { FC } from "react";
 
 const Header: FC<{musicBrainz: MusicbrainzMeta}> = ({musicBrainz}) => 
-<div class="stack">
+<div className="stack">
   <h2>{musicBrainz.artist}</h2>
   <p>{musicBrainz.albumTitle}</p>
 </div>;
@@ -15,7 +15,7 @@ const Centered: FC<{ musicBrainz: MusicbrainzMeta}> = ({musicBrainz}) =>
   />
 
 const Footer: FC<{musicBrainz: MusicbrainzMeta, wishlist: Array<string>, available: Release[]}> = ({musicBrainz, wishlist, available}) => 
-<div class="stack">
+<div className="stack">
   {available.length !== 0
     ? available.map((record) => {
       return (
@@ -25,13 +25,13 @@ const Footer: FC<{musicBrainz: MusicbrainzMeta, wishlist: Array<string>, availab
         </p>
       );
     })
-    : <Fragment></Fragment>}
+    : <></>}
   {wishlist.some((id) => musicBrainz.releaseGroupId === id)
   ? (
     <button
       type="button"
       hx-trigger="click"
-      onclick={`localStorage.setItem('wishlist', JSON.stringify( [...new Set([...(JSON.parse(localStorage.getItem('wishlist')) || [])].filter(cache => cache !== '${musicBrainz.releaseGroupId}')  )]  ))`}
+      //onClick={`localStorage.setItem('wishlist', JSON.stringify( [...new Set([...(JSON.parse(localStorage.getItem('wishlist')) || [])].filter(cache => cache !== '${musicBrainz.releaseGroupId}')  )]  ))`}
       hx-get="/api/releaseGroupByIds"
       hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
       hx-target="#wishlist"
@@ -44,7 +44,7 @@ const Footer: FC<{musicBrainz: MusicbrainzMeta, wishlist: Array<string>, availab
     <button
       type="button"
       hx-trigger="click"
-      onclick={`localStorage.setItem('wishlist', JSON.stringify( [...new Set([...(JSON.parse(localStorage.getItem('wishlist')) || []), '${musicBrainz.releaseGroupId}'])]  ))`}
+      //onClick={`localStorage.setItem('wishlist', JSON.stringify( [...new Set([...(JSON.parse(localStorage.getItem('wishlist')) || []), '${musicBrainz.releaseGroupId}'])]  ))`}
       hx-get="/api/releaseGroupByIds"
       hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
       hx-target="#wishlist"
@@ -59,7 +59,7 @@ const Cover: FC<{
     wishlist: Array<string>;
     result: { musicBrainz: MusicbrainzMeta; available: Release[] };
   }> = ({wishlist, result: {available, musicBrainz}}) => 
-<div class="cover" style={{height: "100%"}}>
+<div className="cover" style={{height: "100%"}}>
   <Header musicBrainz={musicBrainz} ></Header>
   <Centered musicBrainz={musicBrainz}></Centered>
   <Footer musicBrainz={musicBrainz} wishlist={wishlist} available={available}></Footer>
@@ -75,7 +75,7 @@ const AlbumArtistResult: FC<
     
   return (
     <div
-      class="box invert"
+      className="box invert"
       key={musicBrainz.releaseGroupId}
       style={{ maxWidth: "300px", padding: "1em" }}
       hx-target="this"
@@ -93,7 +93,7 @@ const AlbumArtistResultList: FC<
 > = (props) => {
   const { results, wishlist } = props;
   return (
-    <div class="grid">
+    <div className="grid">
       {results.map((meta) => {
         return (
           <AlbumArtistResult

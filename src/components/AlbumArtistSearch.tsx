@@ -1,9 +1,9 @@
-import { type FC } from "hono/jsx";
+import { FC } from "react";
 
 export const AlbumArtistSearch: FC = (props) => {
   return (
     <div>
-      <label for="artist">Artist:</label>
+      <label htmlFor="artist">Artist:</label>
       <input
         type="text"
         name="artist"
@@ -16,7 +16,7 @@ export const AlbumArtistSearch: FC = (props) => {
         hx-vals="js:{id: JSON.parse(localStorage.getItem('wishlist'))}"
         hx-indicator="#throbber"
       />
-      <label for="albumtitle">Album:</label>
+      <label htmlFor="albumtitle">Album:</label>
       <input
         type="text"
         name="albumTitle"
@@ -31,7 +31,7 @@ export const AlbumArtistSearch: FC = (props) => {
       />
       <img
         id="throbber"
-        class="htmx-indicator"
+        className="htmx-indicator"
         src="https://upload.wikimedia.org/wikipedia/commons/f/f8/Ajax-loader%282%29.gif"
       />
       <div id="searchArea"></div>
