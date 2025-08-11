@@ -1,0 +1,11 @@
+{
+  "name": "CD wishlist",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "display": "minimal-ui"
+}
