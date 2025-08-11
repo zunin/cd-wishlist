@@ -14,7 +14,15 @@
     "@types/react": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "@std/collections": "npm:@jsr/std__collections@^1.0.11",
+    "@std/encoding": "npm:@jsr/std__encoding@^1.0.10",
+    "@std/text": "npm:@jsr/std__text@^1.0.13",
+    "@std/uuid": "npm:@jsr/std__uuid@^1.0.7",
+    "cloudevents": "9.0.0",
+    "musicbrainz-api": "0.21.0",
+    "@std/async": "npm:@jsr/std__async@^1.0.6",
+    "zod½": "4.0.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

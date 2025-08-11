@@ -1,5 +1,5 @@
-import { Release } from "../models/Release.ts";
-import { MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
+import { type Release } from "../models/Release.ts";
+import { type MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
 import { FC } from "react";
 
 const Header: FC<{musicBrainz: MusicbrainzMeta}> = ({musicBrainz}) => 
@@ -85,7 +85,7 @@ const AlbumArtistResult: FC<
     </div>
   );
 };
-const AlbumArtistResultList: FC<
+export const AlbumArtistResultList: FC<
   {
     wishlist: Array<string>;
     results: Array<{ musicBrainz: MusicbrainzMeta; available: Release[] }>;

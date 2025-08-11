@@ -1,4 +1,4 @@
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 import { MusicbrainzMetaSchema } from "./MusicbrainzMeta.ts";
 
 export const ReleaseSchema = z.object({
@@ -9,6 +9,6 @@ export const ReleaseSchema = z.object({
   quality: z.string(),
   type: z.string(),
   musicbrainz: MusicbrainzMetaSchema.optional()
-}).openapi("Release");
+});
 
 export type Release = z.infer<typeof ReleaseSchema>;

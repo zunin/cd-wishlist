@@ -1,7 +1,7 @@
-import { IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
-import { compareSimilarity } from "jsr:@std/text";
+import { type IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
+import { compareSimilarity } from "@std/text";
 import { delay } from "@std/async/delay";
-import { MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
+import { type MusicbrainzMeta } from "./models/MusicbrainzMeta.ts";
 
 export class MusicBrainzClient {
   private mbApi: MusicBrainzApi;

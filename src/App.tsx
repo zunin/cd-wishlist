@@ -4,7 +4,7 @@ import { AlbumArtistSearch } from "./components/AlbumArtistSearch.tsx";
 import { Wishlist } from "./components/Wishlist.tsx";
 
 function App() {
-  //const [count, setCount] = useState(0)
+  const [wishList, setWishList] = useState(JSON.parse(localStorage.getItem('wishlist')  ?? "[]") as Array<string>);
 
 
   return (
@@ -12,7 +12,7 @@ function App() {
     <h1>Get notified when used CD markets have your cd</h1>
     <legend>Items to subscribe to</legend>
     <AlbumArtistSearch></AlbumArtistSearch>
-    <Wishlist></Wishlist>
+    <Wishlist wishList={wishList} setWishList={setWishList}></Wishlist>
     </>
   )
 }
