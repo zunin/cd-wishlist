@@ -1,12 +1,15 @@
-(() => {
-  self.addEventListener("install", (evt) => {
-    console.log("V1 installing…");
-  });
+declare let self: ServiceWorkerGlobalScope;
+// activate new app version
+self.addEventListener("message", (event) => {
+  console.log({ worker_message_event: event });
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+});
 
-  self.addEventListener("activate", (event) => {
-    console.log("V1 now ready to handle fetches!");
-  });
-  self.addEventListener("fetch", (event) => {
-    console.log("doing a fetch to ", event.request.url);
-  });
-})();
+self.addEventListener("install", (event) => {
+  console.log("Service Worker: Install event triggered", event);
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("Service Worker: Activate event triggered", event);
+  self.clients.claim();
+});
