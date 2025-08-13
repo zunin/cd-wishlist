@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { // @ts-types="react"
+useEffect, useState } from 'react'
 import './App.css'
 import { AlbumArtistSearch } from "./components/AlbumArtistSearch.tsx";
 import { Wishlist } from "./components/Wishlist.tsx";
 
 function App() {
   const [wishList, setWishList] = useState(JSON.parse(localStorage.getItem('wishlist')  ?? "[]") as Array<string>);
-
+  useEffect(() => {
+    localStorage.setItem('wishlist', JSON.stringify(wishList));
+  }, [wishList])
 
   return (
     <>
