@@ -13,7 +13,34 @@ const swPlugin = VitePWA({
     icons: [{
       src: "vite.svg",
       sizes: "any"
-    }]
+    }],
+  },
+  workbox: {
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/musicbrainz\.org\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'music-brainz',
+          expiration: undefined,
+          cacheableResponse: {
+            statuses: [0, 200]
+          }
+        }
+      },
+      {
+        urlPattern: /^https:\/\/coverartarchive\.org\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'coverartarchive',
+          expiration: undefined,
+          cacheableResponse: {
+            statuses: [0, 200]
+          }
+        }
+      }
+    ],
+    
   }
 }) as typeof reactPlugin;
 
