@@ -43,7 +43,7 @@ function main() {
       fsRoot: target,
       showDirListing: serverArgs["dir-listing"],
       showDotfiles: serverArgs.dotfiles,
-      enableCors: false,
+      enableCors: true,
       quiet: !serverArgs.verbose,
       headers,
     });
