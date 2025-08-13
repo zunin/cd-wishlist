@@ -22,6 +22,7 @@
     "cloudevents": "9.0.0",
     "musicbrainz-api": "0.21.0",
     "@std/async": "npm:@jsr/std__async@^1.0.6",
+    "vite-plugin-pwa": "^1.0.2",
     "zod": "4.0.17",
     "vite-plugin-sw": "1.0.2"
   },
