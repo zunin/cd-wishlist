@@ -9,7 +9,11 @@ const swPlugin = VitePWA({
     enabled: true,
   },
   manifest: {
-    name: "CD wishlist"
+    name: "CD wishlist",
+    icons: [{
+      src: "vite.svg",
+      sizes: "any"
+    }]
   }
 }) as typeof reactPlugin;
 
