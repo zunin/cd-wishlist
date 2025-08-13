@@ -1857,6 +1857,7 @@
         "npm:react@^19.1.1",
         "npm:typescript-eslint@^8.39.0",
         "npm:typescript@~5.8.3",
+        "npm:vite-plugin-sw@1.0.2",
         "npm:vite@^7.1.0",
         "npm:zod@4.0.17"
       ]
