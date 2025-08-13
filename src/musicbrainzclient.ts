@@ -1,4 +1,4 @@
-import { type IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
+import { type HttpClient, type IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
 import { compareSimilarity } from "@std/text";
 import { delay } from "@std/async/delay";
 import { type MusicbrainzMeta } from "./models/MusicbrainzMeta.ts";
@@ -12,6 +12,8 @@ export class MusicBrainzClient {
       appVersion: "0.0.1",
       appContactInfo: "https://github.com/zunin/cd-wishlist",
     });
+    const client = ((this.mbApi as unknown as MusicBrainzApi & {httpClient: HttpClient}).httpClient);
+    (this.mbApi as unknown as {httpClient: HttpClient}).httpClient = client;;
   }
 
   async getMusicBrainzHit(
@@ -145,7 +147,6 @@ export class MusicBrainzClient {
       .join(" OR ");
 
     const query = `${artistQuery} AND type:"Album" AND NOT type:"Live" and NOT type:"Compilation" and NOT type:"Demo" and NOT type:"Remix"`;
-    console.log(query)
     try {
       const releaseGroupSearchResult = await this.mbApi.search(
         "release-group",

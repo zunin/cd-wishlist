@@ -10,14 +10,14 @@ import { type Release } from "../models/Release.ts";
 
 export const Wishlist: FC<
   { wishList: Array<string>; setWishList: (wishList: Array<string>) => void }
-> = ({ wishList }) => {
+> = ({ wishList, setWishList }) => {
   const [results, setResults] = useState([] as Array<{ musicBrainz: MusicbrainzMeta; available: Release[] }>);
     const [musicBrainzClient] = useState(new MusicBrainzClient());
     useEffect(() => {
         async function fetch () {
             const metaPromises = wishList.map(id => musicBrainzClient.getMusicBrainzHit(id));
             const res = await Promise.all<MusicbrainzMeta>(metaPromises);
-            setResults(res.map((meta) => {return {musicBrainz: meta, available: []}}))
+            setResults(res.filter(x => !!x).map((meta) => {return {musicBrainz: meta, available: []}}))
         }
        
         fetch();
@@ -27,7 +27,7 @@ export const Wishlist: FC<
   return (
     <div>
       <h2>Wishlist</h2>
-      <AlbumArtistResultList wishlist={wishList} results={results}>
+      <AlbumArtistResultList wishList={wishList} setWishList={setWishList} results={results}>
       </AlbumArtistResultList>
     </div>
   );

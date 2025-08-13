@@ -11,7 +11,7 @@ function App() {
     <>
     <h1>Get notified when used CD markets have your cd</h1>
     <legend>Items to subscribe to</legend>
-    <AlbumArtistSearch></AlbumArtistSearch>
+    <AlbumArtistSearch wishList={wishList} setWishList={setWishList}></AlbumArtistSearch>
     <Wishlist wishList={wishList} setWishList={setWishList}></Wishlist>
     </>
   )

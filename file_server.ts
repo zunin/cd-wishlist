@@ -35,6 +35,8 @@ function main() {
   const headers = serverArgs.header || [];
   const host = serverArgs.host;
  
+  
+
   const wild = serverArgs._ as string[];
   const target = resolve(wild[0] ?? "");
 
@@ -43,7 +45,7 @@ function main() {
       fsRoot: target,
       showDirListing: serverArgs["dir-listing"],
       showDotfiles: serverArgs.dotfiles,
-      enableCors: true,
+      enableCors: serverArgs.cors,
       quiet: !serverArgs.verbose,
       headers,
     });
