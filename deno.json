@@ -1,13 +1,4 @@
 {
-  "imports": {
-    "@std/collections": "jsr:@std/collections@^1.0.11",
-    "@std/encoding": "jsr:@std/encoding@^1.0.10",
-    "@std/text": "jsr:@std/text@^1.0.13",
-    "@std/uuid": "jsr:@std/uuid@^1.0.7",
-    "cloudevents": "npm:cloudevents@9.0.0",
-    "musicbrainz-api": "npm:musicbrainz-api@0.21.0",
-    "@std/async": "jsr:@std/async@^1.0.6"
-  },
   "tasks": {
     "dev": "deno run -A npm:vite",
     "build": "deno run -A npm:vite build",
