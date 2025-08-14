@@ -8,7 +8,7 @@ import { type MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
 import { AlbumArtistResultList } from "./AlbumArtistResultList.tsx";
 import { type Release } from "../models/Release.ts";
 
-export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wishList: Array<string>) => void }> = ({wishList, setWishList}) => {
+export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wishList: Array<string>) => void; releases: Array<Release>}> = ({wishList, setWishList, releases}) => {
   const [artistQuery, setArtistQuery] = useState("");
   const [albumQuery, setAlbumQuery] = useState("");
   const [searchHits, setSearchHits] = useState([] as MusicbrainzMeta[]);
@@ -37,7 +37,7 @@ export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wish
   useEffect(() => {
     setAlbumARtistResultList(searchHits.map((hit: MusicbrainzMeta) => {
       return {
-        available: [],
+        available: releases.filter(x => x.musicbrainz?.releaseGroupId === hit.releaseGroupId),
         musicBrainz: hit,
       };
     }));
