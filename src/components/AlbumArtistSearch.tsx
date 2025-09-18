@@ -8,7 +8,11 @@ import { type MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
 import { AlbumArtistResultList } from "./AlbumArtistResultList.tsx";
 import { type Release } from "../models/Release.ts";
 
-export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wishList: Array<string>) => void; releases: Array<Release>}> = ({wishList, setWishList, releases}) => {
+export const AlbumArtistSearch: FC<
+  {
+    releases: Array<Release>;
+  }
+> = ({ releases }) => {
   const [artistQuery, setArtistQuery] = useState("");
   const [albumQuery, setAlbumQuery] = useState("");
   const [searchHits, setSearchHits] = useState([] as MusicbrainzMeta[]);
@@ -23,7 +27,10 @@ export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wish
     const handler = setTimeout(async () => {
       if (!!artistQuery || !!albumQuery) {
         setSearchHits(
-          (await musicBrainzClient.getMusicBrainzHits(artistQuery, albumQuery)) ?? [],
+          (await musicBrainzClient.getMusicBrainzHits(
+            artistQuery,
+            albumQuery,
+          )) ?? [],
         );
       }
     }, 1000);
@@ -37,11 +44,13 @@ export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wish
   useEffect(() => {
     setAlbumARtistResultList(searchHits.map((hit: MusicbrainzMeta) => {
       return {
-        available: releases.filter(x => x.musicbrainz?.releaseGroupId === hit.releaseGroupId),
+        available: releases.filter((x) =>
+          x.musicbrainz?.releaseGroupId === hit.releaseGroupId
+        ),
         musicBrainz: hit,
       };
     }));
-  }, [searchHits]);
+  }, [searchHits, releases]);
 
   return (
     <div>
@@ -63,7 +72,9 @@ export const AlbumArtistSearch: FC<{ wishList: Array<string>; setWishList: (wish
         src="https://upload.wikimedia.org/wikipedia/commons/f/f8/Ajax-loader%282%29.gif"
       />
       <div id="searchArea">
-        <AlbumArtistResultList wishList={wishList} setWishList={setWishList} results={albumARtistResultList}>
+        <AlbumArtistResultList
+          results={albumARtistResultList}
+        >
         </AlbumArtistResultList>
       </div>
     </div>

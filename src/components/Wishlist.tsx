@@ -7,22 +7,23 @@ import { AlbumArtistResultList } from "./AlbumArtistResultList.tsx";
 import { MusicBrainzClient } from "../musicbrainzclient.ts";
 import { type MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
 import { type Release } from "../models/Release.ts";
+import { useAppSelector } from "../reduxhooks.ts";
 
 export const Wishlist: FC<
   {
-    wishList: Array<string>;
-    setWishList: (wishList: Array<string>) => void;
     releases: Array<Release>;
   }
-> = ({ wishList, setWishList, releases }) => {
+> = ({ releases }) => {
+  const wishlist = useAppSelector((state) => state.wishlist.ids);
+
   const [results, setResults] = useState(
     [] as Array<{ musicBrainz: MusicbrainzMeta; available: Release[] }>,
   );
   const [musicBrainzClient] = useState(new MusicBrainzClient());
   useEffect(() => {
     async function fetch() {
-      const metaPromises = wishList.map((id) =>
-        musicBrainzClient.getMusicBrainzHit(id)
+      const metaPromises = wishlist.map((item) =>
+        musicBrainzClient.getMusicBrainzHit(item.id)
       );
       const res = await Promise.all<MusicbrainzMeta>(metaPromises);
       setResults(
@@ -38,14 +39,12 @@ export const Wishlist: FC<
     }
 
     fetch();
-  }, [wishList, musicBrainzClient, releases]);
+  }, [wishlist, musicBrainzClient, releases]);
 
   return (
     <div>
       <h2>Wishlist</h2>
       <AlbumArtistResultList
-        wishList={wishList}
-        setWishList={setWishList}
         results={results}
       >
       </AlbumArtistResultList>

@@ -40,9 +40,8 @@ const swPlugin = VitePWA({
         },
       },
       {
-        urlPattern:
-          /cds\.json/i,
-        handler: "NetworkOnly",
+        urlPattern: /cds\.json/i,
+        handler: "NetworkFirst",
         options: {
           backgroundSync: {
             name: "cd6000",
