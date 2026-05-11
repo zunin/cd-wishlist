@@ -24,7 +24,7 @@ const persistence = new IndexeddbPersistence("com.github.cdwishlist", yDoc);
 const store = configureStore({
   reducer: {
     wishlist: enhanceReducer(wishlistReducer),
-    settings: enhanceReducer(settingsReducer)
+    settings: settingsReducer
   },
 });
 
