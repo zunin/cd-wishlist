@@ -1,6 +1,6 @@
 import { configureStore, type Store } from '@reduxjs/toolkit'
 import wishlistReducer from "./store/wishlist.ts";
-import settingsReducer from "./store/settings.ts";
+import settingsReducer, { DEFAULT_SETTINGS, type SyncSettings, clearRestartFlag } from "./store/settings.ts";
 
 import { Doc, transact, Array as YArray, Map as YMap } from 'yjs';
 import { WebrtcProvider } from "y-webrtc";
@@ -18,12 +18,7 @@ declare global {
   }
 }
 
-const signalingUrls = import.meta.env.VITE_SIGNALING_URL
-  ? [import.meta.env.VITE_SIGNALING_URL]
-  : ["wss://cdwishlist-signaling.deno.dev"];
-
 const yDoc = new Doc();
-
 const persistence = new IndexeddbPersistence("com.github.cdwishlist", yDoc);
 
 const store = configureStore({
@@ -31,6 +26,74 @@ const store = configureStore({
     wishlist: enhanceReducer(wishlistReducer),
     settings: enhanceReducer(settingsReducer)
   },
+});
+
+function getSignalingUrls(settings: SyncSettings): string[] {
+  if (settings.signalingUrl) {
+    return [settings.signalingUrl];
+  }
+  return [DEFAULT_SETTINGS.signalingUrl];
+}
+
+function getIceServers(settings: SyncSettings): { urls: string }[] {
+  return settings.iceServers
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+    .map(url => ({ urls: url }));
+}
+
+function createProvider(settings: SyncSettings): WebrtcProvider {
+  const signalingUrls = getSignalingUrls(settings);
+  const iceServers = getIceServers(settings);
+
+  return new WebrtcProvider(settings.roomName, yDoc, {
+    password: settings.password || undefined,
+    signaling: signalingUrls,
+    awareness: new awarenessProtocol.Awareness(yDoc),
+    filterBcConns: settings.filterBcConns,
+    maxConns: settings.maxConns,
+    peerOpts: {
+      iceServers,
+    },
+  });
+}
+
+let provider = createProvider(store.getState().settings);
+
+provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
+  console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers);
+});
+
+provider.on('synced', () => {
+  console.log('[webrtc] synced with remote peers');
+});
+
+yDoc.on('update', (update: Uint8Array, origin: unknown) => {
+  const isRemote = origin !== persistence;
+  console.log('[yjs] update received, size:', update.byteLength, 'remote:', isRemote, 'origin:', origin);
+});
+
+function restartProvider() {
+  provider.destroy();
+  provider = createProvider(store.getState().settings);
+
+  provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
+    console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers);
+  });
+
+  provider.on('synced', () => {
+    console.log('[webrtc] synced with remote peers');
+  });
+
+  store.dispatch(clearRestartFlag());
+}
+
+store.subscribe(() => {
+  const state = store.getState().settings;
+  if (state.needsProviderRestart) {
+    restartProvider();
+  }
 });
 
 function toSharedType(value: unknown): unknown {
@@ -100,14 +163,8 @@ function bindRespectingExistingData(doc: Doc, store: Store, sliceName: string) {
     if (patchingYjs) return;
     patchingStore = true;
     const yjsSlice = rootMap.get(sliceName);
-    console.log('[yjs→redux] handleYjsChange fired, sliceName:', sliceName, 'hasSlice:', !!yjsSlice);
     if (yjsSlice && typeof (yjsSlice as { toJSON?: () => unknown }).toJSON === 'function') {
-      const payload = (yjsSlice as { toJSON: () => unknown }).toJSON();
-      console.log('[yjs→redux] Dispatching SET_STATE_FROM_YJS_ACTION with:', JSON.stringify(payload));
-      store.dispatch({ type: SET_STATE_FROM_YJS_ACTION, payload });
-      const state = store.getState();
-      const sliceState = state[sliceName as keyof typeof state];
-      console.log('[yjs→redux] Store state after dispatch:', JSON.stringify(sliceState));
+      store.dispatch({ type: SET_STATE_FROM_YJS_ACTION, payload: (yjsSlice as { toJSON: () => unknown }).toJSON() });
     }
     patchingStore = false;
   };
@@ -120,36 +177,6 @@ function bindRespectingExistingData(doc: Doc, store: Store, sliceName: string) {
     rootMap.unobserveDeep(handleYjsChange);
   };
 }
-
-const provider = new WebrtcProvider("com.github.cdwishlist", yDoc, {
-  password: undefined,
-  signaling: signalingUrls,
-  awareness: new awarenessProtocol.Awareness(yDoc),
-  filterBcConns: false,
-  maxConns: 25,
-  peerOpts: {
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-      { urls: "stun:stun2.l.google.com:19302" },
-      { urls: "stun:stun3.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:19302" },
-    ],
-  },
-});
-
-provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
-  console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers);
-});
-
-provider.on('synced', () => {
-  console.log('[webrtc] synced with remote peers');
-});
-
-yDoc.on('update', (update: Uint8Array, origin: unknown) => {
-  const isRemote = origin !== persistence;
-  console.log('[yjs] update received, size:', update.byteLength, 'remote:', isRemote, 'origin:', origin);
-});
 
 let bound = false;
 
@@ -166,11 +193,6 @@ window.addEventListener('beforeunload', () => {
 });
 
 export { provider, yDoc };
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 export default store;
-
-
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
-export type AppDispatch = typeof store.dispatch
-// Use throughout your app instead of plain `useDispatch` and `useSelector`

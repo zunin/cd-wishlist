@@ -159,3 +159,133 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.85); }
 }
+
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+  margin-bottom: 1rem;
+}
+
+.app-nav button {
+  padding: 0.4rem 1rem;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-nav button:hover {
+  background: #333;
+  color: #fff;
+}
+
+.app-nav button.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #888;
+}
+
+.settings-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.settings-page h2 {
+  margin-bottom: 1.5rem;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.settings-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.settings-group input[type="text"],
+.settings-group input[type="password"],
+.settings-group input[type="number"],
+.settings-group textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.settings-group input:focus,
+.settings-group textarea:focus {
+  outline: none;
+  border-color: #888;
+}
+
+.settings-group textarea {
+  resize: vertical;
+  font-family: monospace;
+}
+
+.setting-hint {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.settings-group--checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.settings-group--checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #22c55e;
+}
+
+.settings-actions {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.btn--secondary {
+  background: transparent;
+  color: #ccc;
+}
+
+.btn--secondary:hover {
+  background: #333;
+  color: #fff;
+}
+
+.settings-notice {
+  margin-top: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #eab308;
+  border-radius: 4px;
+  color: #eab308;
+  font-size: 0.8rem;
+}
