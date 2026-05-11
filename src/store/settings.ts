@@ -11,7 +11,7 @@ export interface SyncSettings {
 
 export const DEFAULT_SETTINGS: SyncSettings = {
   roomName: "com.github.cdwishlist",
-  signalingUrl: "wss://cdwishlist-signaling.deno.dev",
+  signalingUrl: "wss://cdwishlist-signaling.nikolaioellegaard.deno.net",
   password: "",
   maxConns: 25,
   filterBcConns: false,
