@@ -113,7 +113,7 @@ const setupConnection = (socket: WebSocket) => {
 
 const port = parseInt(Deno.env.get("PORT") || "4444");
 
-Deno.serve({ port, hostname: "0.0.0.0" }, (req) => {
+Deno.serve({ port }, (req) => {
   if (req.headers.get("upgrade") !== "websocket") {
     return new Response("y-webrtc signaling server\n", {
       status: 200,

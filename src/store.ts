@@ -20,7 +20,7 @@ declare global {
 
 const signalingUrls = import.meta.env.VITE_SIGNALING_URL
   ? [import.meta.env.VITE_SIGNALING_URL]
-  : ["ws://localhost:4444"];
+  : ["wss://cdwishlist-signaling.deno.dev"];
 
 const yDoc = new Doc();
 

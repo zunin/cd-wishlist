@@ -6,13 +6,13 @@ on:
     branches: feature/pwa
 
 jobs:
-  deploy:
-    name: Deploy
+  deploy-frontend:
+    name: Deploy Frontend
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write # Needed for auth with Deno Deploy
-      contents: read # Needed to clone the repository
+      id-token: write
+      contents: read
 
     steps:
       - name: Clone repository
@@ -28,20 +28,37 @@ jobs:
         with:
           node-version: lts/*
 
-      - name: Install step
+      - name: Install dependencies
         run: "deno install"
 
-      - name: Build step
+      - name: Build
         run: "deno task build"
 
-      - name: Copy file server
-        run: "cp file_server.ts dist/file_server.ts"
-
-      - name: Upload to Deno Deploy
-        uses: denoland/deployctl@v1
+      - name: Deploy to Deno Deploy
+        uses: denoland/deployctl@v2
         with:
           project: "cdwishlist"
-          entrypoint: "file_server.ts"
-          root: "dist"
-          
-          
+          entrypoint: "deploy.ts"
+
+  deploy-signaling:
+    name: Deploy Signaling Server
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Deploy to Deno Deploy
+        uses: denoland/deployctl@v2
+        with:
+          project: "cdwishlist-signaling"
+          entrypoint: "signaling-server.ts"
