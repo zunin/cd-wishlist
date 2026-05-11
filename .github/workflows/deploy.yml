@@ -35,7 +35,7 @@ jobs:
         run: "deno task build"
 
       - name: Deploy to Deno Deploy
-        uses: denoland/deployctl@v2
+        uses: denoland/deployctl@v1
         with:
           project: "cdwishlist"
           entrypoint: "deploy.ts"
@@ -58,7 +58,7 @@ jobs:
           deno-version: v2.x
 
       - name: Deploy to Deno Deploy
-        uses: denoland/deployctl@v2
+        uses: denoland/deployctl@v1
         with:
           project: "cdwishlist-signaling"
           entrypoint: "signaling-server.ts"
