@@ -6,6 +6,8 @@ import { // @ts-types="react"
 import { type Release } from "./models/Release.ts";
 import { AlbumArtistSearch } from "./components/AlbumArtistSearch.tsx";
 import { Wishlist } from "./components/Wishlist.tsx";
+import { SyncStatus } from "./components/SyncStatus.tsx";
+import { SyncDebug } from "./components/SyncDebug.tsx";
 import { Provider } from "react-redux";
 import store from "./store.ts";
 
@@ -25,6 +27,8 @@ const App: FC = () => {
   return (
     <>
       <Provider store={store}>
+      <SyncStatus />
+      <SyncDebug />
       <h1>Get notified when used CD markets have your cd</h1>
       <legend>Items to subscribe to</legend>
       

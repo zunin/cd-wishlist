@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "deno task dev",
+    "build": "deno task build",
+    "lint": "deno task lint",
+    "preview": "deno run -A npm:vite preview"
   },
   "dependencies": {
     "@deno/vite-plugin": "^1.0.5",

@@ -32,7 +32,7 @@ jobs:
         run: "deno install"
 
       - name: Build step
-        run: "deno run build"
+        run: "deno task build"
 
       - name: Copy file server
         run: "cp file_server.ts dist/file_server.ts"
