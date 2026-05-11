@@ -1,10 +1,24 @@
 {
-  "imports": {
-    "@oak/oak": "jsr:@oak/oak@^16.1.0",
-    "@std/collections": "jsr:@std/collections@^1.0.5",
-    "@std/encoding": "jsr:@std/encoding@^1.0.3",
-    "@std/text": "jsr:@std/text@^1.0.4",
-    "@std/uuid": "jsr:@std/uuid@^1.0.0",
-    "cloudevents": "npm:cloudevents@8.0.2"
+  "tasks": {
+    "dev": "deno run -A npm:vite",
+    "typecheck": "deno check src/main.tsx",
+    "build": "deno check src/main.tsx && deno run -A npm:vite build",
+    "serve": "deno run build",
+    "signal": "deno run --allow-net --allow-env signaling-server.ts",
+    "lint": "deno run -A npm:eslint ."
+  },
+  "compilerOptions": {
+    "types": [
+        "react",
+        "react-dom",
+        "@types/react"
+    ],
+    "lib": [
+        "dom",
+        "dom.iterable",
+        "deno.ns"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }

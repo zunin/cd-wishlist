@@ -4,5 +4,9 @@
     "deno.codeLens.references": true,
     "deno.codeLens.referencesAllFunctions": true,
     "deno.codeLens.test": true,
-    "deno.defaultTaskCommand": "run"
+    "deno.defaultTaskCommand": "run",
+    "deno.enablePaths": [
+    "./"
+  ],
+  "editor.inlayHints.enabled": "off"
 }

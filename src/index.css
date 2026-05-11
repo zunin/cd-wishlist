@@ -1,0 +1,291 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.stack > * {
+  margin-block: 0;
+}
+
+.stack > * + * {
+  margin-block-start: var(--space, 1.5rem);
+}
+.box {
+  padding: var(--s1);
+  border: var(--border-thin) solid;
+  --color-light: #fff;
+  --color-dark: #000;
+  color: var(--color-dark);
+  background-color: var(--color-light);
+}
+
+.box * {
+  color: inherit;
+}
+
+.box.invert {
+  color: var(--color-light);
+  background-color: var(--color-dark);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space, 1rem);
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+  grid-gap: 1rem;
+}
+
+@supports (width: min(250px, 100%)) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  }
+}
+
+.with-sidebar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.with-sidebar > :first-child {
+  flex-grow: 1;
+}
+
+.with-sidebar > :last-child {
+  flex-basis: 0;
+  flex-grow: 999;
+  min-inline-size: 50%;
+}
+
+.frame {
+  --n: 300;
+  --d: 218;
+  aspect-ratio: var(--n) / var(--d);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.frame > img,
+.frame > video {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.cover {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 35vh;
+  padding: 1rem;
+}
+
+.cover > * {
+  margin-block: 1rem;
+}
+
+.cover > :first-child:not(img) {
+  margin-block-start: 0;
+}
+
+.cover > :last-child:not(img) {
+  margin-block-end: 0;
+}
+
+.cover > img {
+  margin-block: auto;
+}
+
+.htmx-indicator{
+    opacity:0;
+    transition: opacity 500ms ease-in;
+}
+.htmx-request .htmx-indicator{
+    opacity:1;
+}
+.htmx-request.htmx-indicator{
+    opacity:1;
+}
+
+.sync-status {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  background: #1a1a1a;
+  color: #fff;
+  z-index: 9999;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.sync-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sync-status--waiting .sync-status__dot {
+  background: #eab308;
+  animation: sync-pulse 1.5s ease-in-out infinite;
+}
+
+.sync-status--syncing .sync-status__dot {
+  background: #eab308;
+  animation: sync-pulse 0.8s ease-in-out infinite;
+}
+
+.sync-status--synced .sync-status__dot {
+  background: #22c55e;
+}
+
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333;
+  margin-bottom: 1rem;
+}
+
+.app-nav button {
+  padding: 0.4rem 1rem;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-nav button:hover {
+  background: #333;
+  color: #fff;
+}
+
+.app-nav button.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #888;
+}
+
+.settings-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.settings-page h2 {
+  margin-bottom: 1.5rem;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.settings-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.settings-group input[type="text"],
+.settings-group input[type="password"],
+.settings-group input[type="number"],
+.settings-group textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.settings-group input:focus,
+.settings-group textarea:focus {
+  outline: none;
+  border-color: #888;
+}
+
+.settings-group textarea {
+  resize: vertical;
+  font-family: monospace;
+}
+
+.setting-hint {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.settings-group--checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.settings-group--checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #22c55e;
+}
+
+.settings-actions {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.btn--secondary {
+  background: transparent;
+  color: #ccc;
+}
+
+.btn--secondary:hover {
+  background: #333;
+  color: #fff;
+}
+
+.settings-notice {
+  margin-top: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #eab308;
+  border-radius: 4px;
+  color: #eab308;
+  font-size: 0.8rem;
+}
