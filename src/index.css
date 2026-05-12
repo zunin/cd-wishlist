@@ -346,10 +346,41 @@
   margin: 0 auto;
 }
 
-.sync-debug h2 {
+.sync-debug__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
+}
+
+.sync-debug__header h2 {
+  margin: 0;
   font-size: 1.25rem;
   color: #ccc;
+}
+
+.sync-debug__copy {
+  padding: 0.5rem 1rem;
+  background: #22c55e;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sync-debug__copy:hover {
+  background: #16a34a;
+}
+
+.sync-debug__copy.success {
+  background: #22c55e;
+}
+
+.sync-debug__copy.error {
+  background: #ef4444;
 }
 
 .sync-debug__content {
