@@ -48,7 +48,7 @@ function getIceConfig(settings: SyncSettings): RTCConfiguration {
   if (settings.localNetworkOnly) {
     return {
       iceTransportPolicy: 'local' as RTCIceTransportPolicy,
-      iceServers: [],
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
     };
   }
   return {
