@@ -60,14 +60,7 @@ function getIceConfig(settings: SyncSettings): RTCConfiguration {
 function createProvider(settings: SyncSettings): WebrtcProvider {
   const signalingUrls = getSignalingUrls(settings);
   const iceConfig = getIceConfig(settings);
-
-  console.log('[webrtc] Creating provider with config:', {
-    signalingUrls,
-    iceConfig,
-    maxConns: settings.maxConns,
-    filterBcConns: settings.filterBcConns,
-  });
-
+  console.log('[config]', JSON.stringify({ signalingUrls, iceConfig, localNetworkOnly: settings.localNetworkOnly }));
   const provider = new WebrtcProvider(settings.roomName, yDoc, {
     password: settings.password || undefined,
     signaling: signalingUrls,
@@ -79,16 +72,12 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
     },
   });
 
-  provider.on('status', ({ connected }: { connected: boolean }) => {
-    console.log('[webrtc] status changed:', connected);
-  });
-
-  provider.on('peers', ({ webrtcPeers, added, removed }: { webrtcPeers: string[], added?: string[], removed?: string[] }) => {
-    console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers, 'added:', added, 'removed:', removed);
+  provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
+    console.log('[webrtc] peers:', webrtcPeers.length, webrtcPeers);
   });
 
   provider.on('synced', () => {
-    console.log('[webrtc] synced with remote peers');
+    console.log('[webrtc] synced');
   });
 
   return provider;
@@ -96,9 +85,23 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
 
 let provider = createProvider(store.getState().settings);
 
-yDoc.on('update', (update: Uint8Array, origin: unknown) => {
-  const isRemote = origin !== persistence;
-  console.log('[yjs] update received, size:', update.byteLength, 'remote:', isRemote, 'origin:', origin);
+let lastPeerCount = 0;
+let oscillationCount = 0;
+let lastLogTime = Date.now();
+
+provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
+  const currentCount = webrtcPeers.length;
+  if ((lastPeerCount === 0 && currentCount === 1) || (lastPeerCount === 1 && currentCount === 0)) {
+    oscillationCount++;
+  }
+  lastPeerCount = currentCount;
+
+  const now = Date.now();
+  if (now - lastLogTime >= 5000) {
+    console.log('[webrtc] osc count:', oscillationCount, 'current peers:', currentCount);
+    oscillationCount = 0;
+    lastLogTime = now;
+  }
 });
 
 function restartProvider() {
