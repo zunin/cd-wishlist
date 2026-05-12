@@ -24,6 +24,8 @@ interface DiagnosticPayload {
     localNetworkOnly: boolean;
     filterBcConns: boolean;
   };
+  signalingConnected: boolean;
+  connectionLog: string[];
 }
 
 export const SyncDebug: FC = () => {
@@ -35,6 +37,12 @@ export const SyncDebug: FC = () => {
   const [clientId, setClientId] = useState(0);
   const [updateCount, setUpdateCount] = useState(0);
   const [copyStatus, setCopyStatus] = useState<"idle" | "success" | "error">("idle");
+  const [signalingConnected, setSignalingConnected] = useState(false);
+  const [connectionLog, setConnectionLog] = useState<string[]>([]);
+
+  const addLog = useCallback((msg: string) => {
+    setConnectionLog(prev => [...prev.slice(-9), `${new Date().toISOString().split('T')[1].split('.')[0]} ${msg}`]);
+  }, []);
 
   useEffect(() => {
     let updates = 0;
@@ -65,6 +73,7 @@ export const SyncDebug: FC = () => {
 
     const onPeers = ({ webrtcPeers }: { webrtcPeers: string[] }) => {
       setPeers(webrtcPeers);
+      addLog(`peers changed: ${webrtcPeers.length}`);
     };
 
     const onYjsUpdate = () => {
@@ -73,12 +82,19 @@ export const SyncDebug: FC = () => {
       setClientId(yDoc.clientID);
     };
 
+    const onStatus = ({ connected }: { connected: boolean }) => {
+      setSignalingConnected(connected);
+      addLog(`signaling ${connected ? 'connected' : 'disconnected'}`);
+    };
+
     setClientId(yDoc.clientID);
+    addLog(`client initialized: ${yDoc.clientID}`);
 
     const rootMap = yDoc.getMap(ROOT_MAP_NAME);
     rootMap.observeDeep(updateRedux);
     rootMap.observeDeep(updateYjs);
     provider.on("peers", onPeers);
+    provider.on("status", onStatus);
     provider.awareness.on("change", updateAwareness);
     yDoc.on("update", onYjsUpdate);
 
@@ -90,10 +106,11 @@ export const SyncDebug: FC = () => {
       rootMap.unobserveDeep(updateRedux);
       rootMap.unobserveDeep(updateYjs);
       provider.off("peers", onPeers);
+      provider.off("status", onStatus);
       provider.awareness.off("change", updateAwareness);
       yDoc.off("update", onYjsUpdate);
     };
-  }, []);
+  }, [addLog]);
 
   const copyToClipboard = useCallback(async () => {
     const payload: DiagnosticPayload = {
@@ -111,6 +128,8 @@ export const SyncDebug: FC = () => {
         localNetworkOnly: settings.localNetworkOnly,
         filterBcConns: settings.filterBcConns,
       },
+      signalingConnected,
+      connectionLog,
     };
 
     try {
@@ -121,7 +140,7 @@ export const SyncDebug: FC = () => {
       setCopyStatus("error");
       setTimeout(() => setCopyStatus("idle"), 2000);
     }
-  }, [clientId, peers, awarenessStates, updateCount, reduxState, yjsState, settings]);
+  }, [clientId, peers, awarenessStates, updateCount, reduxState, yjsState, settings, signalingConnected, connectionLog]);
 
   return (
     <div className="sync-debug">
@@ -154,7 +173,17 @@ export const SyncDebug: FC = () => {
               <h3>Updates</h3>
               <span className="sync-debug__value">{updateCount}</span>
             </div>
+            <div className="sync-debug__item">
+              <h3>Signaling</h3>
+              <span className={`sync-debug__value ${signalingConnected ? 'sync-debug__value--green' : 'sync-debug__value--red'}`}>
+                {signalingConnected ? 'ON' : 'OFF'}
+              </span>
+            </div>
           </div>
+        </section>
+        <section className="sync-debug__section">
+          <h3>Connection Log</h3>
+          <pre className="sync-debug__log">{connectionLog.join('\n')}</pre>
         </section>
         <section className="sync-debug__section">
           <h3>Redux vs Yjs</h3>
