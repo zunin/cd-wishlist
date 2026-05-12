@@ -14,7 +14,7 @@ import { Provider } from "react-redux";
 import store from "./store.ts";
 import { useAppSelector } from "./reduxhooks.ts";
 
-type View = "main" | "settings";
+type View = "main" | "settings" | "debug";
 
 const AppContent: FC = () => {
   const [releases, setReleases] = useState([] as Array<Release>);
@@ -56,11 +56,17 @@ const AppContent: FC = () => {
         >
           Settings
         </button>
+        <button
+          type="button"
+          className={view === "debug" ? "active" : ""}
+          onClick={() => setView("debug")}
+        >
+          Debug
+        </button>
       </nav>
       <SyncStatus />
       {view === "main" && (
         <>
-          <SyncDebug />
           <h1>Get notified when used CD markets have your cd</h1>
           <legend>Items to subscribe to</legend>
           <AlbumArtistSearch releases={releases} />
@@ -68,6 +74,7 @@ const AppContent: FC = () => {
         </>
       )}
       {view === "settings" && <SettingsPage />}
+      {view === "debug" && <SyncDebug />}
     </>
   );
 };

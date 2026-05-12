@@ -76,42 +76,42 @@ export const SyncDebug: FC = () => {
   }, []);
 
   return (
-    <details className="sync-debug">
-      <summary>Debug: Sync State</summary>
+    <div className="sync-debug">
+      <h2>Sync Debug</h2>
       <div className="sync-debug__content">
-        <section>
-          <h3>Peers ({peers.length})</h3>
-          <pre>{JSON.stringify(peers, null, 2)}</pre>
+        <section className="sync-debug__section">
+          <div className="sync-debug__row">
+            <div className="sync-debug__item">
+              <h3>Peers</h3>
+              <span className="sync-debug__value">{peers.length}</span>
+            </div>
+            <div className="sync-debug__item">
+              <h3>Awareness</h3>
+              <span className="sync-debug__value">{awarenessStates.length}</span>
+            </div>
+            <div className="sync-debug__item">
+              <h3>Client ID</h3>
+              <span className="sync-debug__value">{clientId}</span>
+            </div>
+            <div className="sync-debug__item">
+              <h3>Updates</h3>
+              <span className="sync-debug__value">{updateCount}</span>
+            </div>
+          </div>
         </section>
-        <section>
-          <h3>Awareness ({awarenessStates.length} clients)</h3>
-          <pre>{JSON.stringify(awarenessStates, null, 2)}</pre>
-        </section>
-        <section>
-          <h3>Client ID</h3>
-          <pre>{clientId}</pre>
-        </section>
-        <section>
-          <h3>Update Count</h3>
-          <pre>{updateCount}</pre>
-        </section>
-        <section>
-          <h3>Redux Store (wishlist slice)</h3>
-          <pre>{JSON.stringify(reduxState.wishlist, null, 2)}</pre>
-        </section>
-        <section>
-          <h3>Yjs Document (wishlist root)</h3>
-          <pre>{JSON.stringify(yjsState.wishlist, null, 2)}</pre>
-        </section>
-        <section>
-          <h3>Match?</h3>
-          <pre>
+        <section className="sync-debug__section">
+          <h3>Redux vs Yjs</h3>
+          <pre className="sync-debug__match">
             {JSON.stringify(reduxState.wishlist) === JSON.stringify(yjsState.wishlist)
-              ? "YES - Redux and Yjs are in sync"
-              : "NO - Redux and Yjs are OUT OF SYNC"}
+              ? "IN SYNC"
+              : "OUT OF SYNC"}
           </pre>
         </section>
+        <section className="sync-debug__section">
+          <h3>Wishlist Data</h3>
+          <pre>{JSON.stringify(reduxState.wishlist ?? yjsState.wishlist, null, 2)}</pre>
+        </section>
       </div>
-    </details>
+    </div>
   );
 };

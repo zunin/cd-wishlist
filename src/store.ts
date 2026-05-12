@@ -74,32 +74,36 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
     },
   });
 
+  provider.on('status', ({ connected }: { connected: boolean }) => {
+    console.log('[webrtc] status:', connected);
+  });
+
   provider.on('synced', () => {
     console.log('[webrtc] synced');
+  });
+
+  provider.on('peers', ({ webrtcPeers, bcPeers }: { webrtcPeers: string[], bcPeers?: string[] }) => {
+    const currentCount = webrtcPeers.length;
+    if ((lastPeerCount === 0 && currentCount === 1) || (lastPeerCount === 1 && currentCount === 0)) {
+      oscillationCount++;
+    }
+    lastPeerCount = currentCount;
+
+    const now = Date.now();
+    if (now - lastLogTime >= 5000) {
+      console.log('[webrtc] osc count:', oscillationCount, 'webrtc:', currentCount, 'bc:', bcPeers?.length ?? 0);
+      oscillationCount = 0;
+      lastLogTime = now;
+    }
   });
 
   return provider;
 }
 
-let provider = createProvider(store.getState().settings);
+let provider: WebrtcProvider = createProvider(store.getState().settings);
 let lastPeerCount = 0;
 let oscillationCount = 0;
 let lastLogTime = Date.now();
-
-provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
-  const currentCount = webrtcPeers.length;
-  if ((lastPeerCount === 0 && currentCount === 1) || (lastPeerCount === 1 && currentCount === 0)) {
-    oscillationCount++;
-  }
-  lastPeerCount = currentCount;
-
-  const now = Date.now();
-  if (now - lastLogTime >= 5000) {
-    console.log('[webrtc] osc count:', oscillationCount, 'current peers:', currentCount);
-    oscillationCount = 0;
-    lastLogTime = now;
-  }
-});
 
 function restartProvider() {
   provider.destroy();
