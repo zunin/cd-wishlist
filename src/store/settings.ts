@@ -7,6 +7,8 @@ export interface SyncSettings {
   maxConns: number;
   filterBcConns: boolean;
   iceServers: string;
+  dataSources: string[];
+  localNetworkOnly: boolean;
 }
 
 export const DEFAULT_SETTINGS: SyncSettings = {
@@ -14,8 +16,13 @@ export const DEFAULT_SETTINGS: SyncSettings = {
   signalingUrl: "wss://cdwishlist-signaling.nikolaioellegaard.deno.net",
   password: "",
   maxConns: 25,
-  filterBcConns: false,
+  filterBcConns: true,
   iceServers: "stun:stun.l.google.com:19302\nstun:stun1.l.google.com:19302\nstun:stun2.l.google.com:19302\nstun:stun3.l.google.com:19302\nstun:stun4.l.google.com:19302",
+  dataSources: [
+    "https://raw.githubusercontent.com/zunin/cd6000.dk-history/master/cds.json",
+    "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/master/cds.json",
+  ],
+  localNetworkOnly: true,
 };
 
 const STORAGE_KEY = "cdwishlist-sync-settings";

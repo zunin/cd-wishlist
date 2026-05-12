@@ -11,26 +11,34 @@ import { SyncDebug } from "./components/SyncDebug.tsx";
 import { SettingsPage } from "./components/SettingsPage.tsx";
 import { Provider } from "react-redux";
 import store from "./store.ts";
+import { useAppSelector } from "./reduxhooks.ts";
 
 type View = "main" | "settings";
 
-const App: FC = () => {
+const AppContent: FC = () => {
   const [releases, setReleases] = useState([] as Array<Release>);
   const [view, setView] = useState<View>("main");
+  const dataSources = useAppSelector((state) => state.settings.dataSources);
 
   useEffect(() => {
     async function createRequest() {
-      const res = await fetch(
-        "https://raw.githubusercontent.com/zunin/cd6000.dk-history/e5d87d0efff0707e7538c098fe370598337f0199/cds.json",
-      );
-      setReleases(await res.json() as Array<Release>);
+      const allReleases: Array<Release> = [];
+      for (const url of dataSources) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json() as Array<Release>;
+          allReleases.push(...data);
+        } catch (e) {
+          console.error(`Failed to fetch from ${url}:`, e);
+        }
+      }
+      setReleases(allReleases);
     }
     createRequest();
-  }, []);
+  }, [dataSources]);
 
   return (
     <>
-      <Provider store={store}>
       <nav className="app-nav">
         <button
           type="button"
@@ -58,8 +66,15 @@ const App: FC = () => {
         </>
       )}
       {view === "settings" && <SettingsPage />}
-      </Provider>
-      </>
+    </>
+  );
+};
+
+const App: FC = () => {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
   );
 };
 

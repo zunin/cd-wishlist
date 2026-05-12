@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { useAppSelector, useAppDispatch } from "../reduxhooks.ts";
-import { updateSetting, resetToDefaults, DEFAULT_SETTINGS } from "../store/settings.ts";
+import { updateSetting, resetToDefaults } from "../store/settings.ts";
 
 export const SettingsPage: FC = () => {
   const dispatch = useAppDispatch();
@@ -72,6 +72,19 @@ export const SettingsPage: FC = () => {
         <span className="setting-hint">When enabled, tabs in the same browser share data via BroadcastChannel instead of WebRTC.</span>
       </div>
 
+      <div className="settings-group settings-group--checkbox">
+        <label htmlFor="localNetworkOnly">
+          <input
+            id="localNetworkOnly"
+            type="checkbox"
+            checked={settings.localNetworkOnly}
+            onChange={(e) => dispatch(updateSetting({ key: "localNetworkOnly", value: e.target.checked }))}
+          />
+          Local Network Only
+        </label>
+        <span className="setting-hint">When enabled, WebRTC connections are restricted to local network peers only (no TURN relay).</span>
+      </div>
+
       <div className="settings-group">
         <label htmlFor="iceServers">ICE Servers (one per line)</label>
         <textarea
@@ -82,6 +95,18 @@ export const SettingsPage: FC = () => {
           placeholder="stun:stun.l.google.com:19302"
         />
         <span className="setting-hint">STUN/TURN servers for NAT traversal. One URL per line.</span>
+      </div>
+
+      <div className="settings-group">
+        <label htmlFor="dataSources">Data Sources (one per line)</label>
+        <textarea
+          id="dataSources"
+          rows={5}
+          value={settings.dataSources.join("\n")}
+          onChange={(e) => dispatch(updateSetting({ key: "dataSources", value: e.target.value.split("\n").filter((s) => s.trim()) }))}
+          placeholder="https://raw.githubusercontent.com/user/repo/master/cds.json"
+        />
+        <span className="setting-hint">URLs to JSON files containing CD wishlist data. One URL per line.</span>
       </div>
 
       <div className="settings-actions">

@@ -54,7 +54,10 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
     filterBcConns: settings.filterBcConns,
     maxConns: settings.maxConns,
     peerOpts: {
-      iceServers,
+      config: {
+        iceTransportPolicy: settings.localNetworkOnly ? 'local' : 'all',
+        iceServers,
+      },
     },
   });
 }
