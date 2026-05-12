@@ -87,14 +87,20 @@ export const SyncDebug: FC = () => {
       addLog(`signaling ${connected ? 'connected' : 'disconnected'}`);
     };
 
+    const onSync = () => {
+      addLog('synced with peers');
+    };
+
     setClientId(yDoc.clientID);
     addLog(`client initialized: ${yDoc.clientID}`);
+    addLog(`provider connected: ${provider.connected}`);
 
     const rootMap = yDoc.getMap(ROOT_MAP_NAME);
     rootMap.observeDeep(updateRedux);
     rootMap.observeDeep(updateYjs);
     provider.on("peers", onPeers);
     provider.on("status", onStatus);
+    provider.on("synced", onSync);
     provider.awareness.on("change", updateAwareness);
     yDoc.on("update", onYjsUpdate);
 
@@ -102,11 +108,17 @@ export const SyncDebug: FC = () => {
     updateYjs();
     updateAwareness();
 
+    if (provider.connected) {
+      setSignalingConnected(true);
+      addLog('signaling connected (initial)');
+    }
+
     return () => {
       rootMap.unobserveDeep(updateRedux);
       rootMap.unobserveDeep(updateYjs);
       provider.off("peers", onPeers);
       provider.off("status", onStatus);
+      provider.off("synced", onSync);
       provider.awareness.off("change", updateAwareness);
       yDoc.off("update", onYjsUpdate);
     };
