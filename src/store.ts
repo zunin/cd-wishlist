@@ -43,9 +43,23 @@ function getIceServers(settings: SyncSettings): { urls: string }[] {
     .map(url => ({ urls: url }));
 }
 
+function getIceConfig(settings: SyncSettings): RTCConfiguration {
+  const iceServers = getIceServers(settings);
+  if (settings.localNetworkOnly) {
+    return {
+      iceTransportPolicy: 'local' as RTCIceTransportPolicy,
+      iceServers: [],
+    };
+  }
+  return {
+    iceTransportPolicy: 'all' as RTCIceTransportPolicy,
+    iceServers,
+  };
+}
+
 function createProvider(settings: SyncSettings): WebrtcProvider {
   const signalingUrls = getSignalingUrls(settings);
-  const iceServers = getIceServers(settings);
+  const iceConfig = getIceConfig(settings);
 
   return new WebrtcProvider(settings.roomName, yDoc, {
     password: settings.password || undefined,
@@ -54,10 +68,7 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
     filterBcConns: settings.filterBcConns,
     maxConns: settings.maxConns,
     peerOpts: {
-      config: {
-        iceTransportPolicy: settings.localNetworkOnly ? 'local' : 'all',
-        iceServers,
-      },
+      config: iceConfig,
     },
   });
 }
