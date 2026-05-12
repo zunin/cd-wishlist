@@ -65,6 +65,10 @@ export default defineConfig({
     reactPlugin,
     swPlugin,
   ],
+  server: {
+    allowedHosts: ["frontend", "signaling"],
+    host: "0.0.0.0",
+  },
   define: {
     __APP_VERSION__: JSON.stringify(buildTime),
   },

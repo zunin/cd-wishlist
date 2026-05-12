@@ -1,0 +1,9 @@
+FROM denoland/deno:latest
+
+WORKDIR /app
+
+COPY signaling-server.ts ./
+
+EXPOSE 4444
+
+CMD ["deno", "run", "--allow-net", "--allow-env", "signaling-server.ts"]

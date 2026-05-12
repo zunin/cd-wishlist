@@ -1,0 +1,28 @@
+FROM mcr.microsoft.com/playwright:v1.50.0-jammy
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://deno.land/install.sh | sh && \
+    ln -s ~/.deno/bin/deno /usr/local/bin/deno
+
+COPY deno.json deno.lock ./
+COPY package.json ./
+COPY src ./src
+COPY api ./api
+COPY public ./public
+COPY index.html ./
+COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
+COPY vite.config.ts ./
+
+RUN deno cache --node-modules-dir=auto npm:vite && \
+    deno cache --node-modules-dir=auto npm:@vitejs/plugin-react && \
+    deno cache --node-modules-dir=auto npm:vite-plugin-pwa && \
+    deno cache --node-modules-dir=auto npm:vite-plugin-sw && \
+    deno cache --node-modules-dir=auto src/main.tsx && \
+    deno add npm:playwright && \
+    deno add npm:@playwright/mcp && \
+    npx playwright install chromium && \
+    npx playwright install firefox && \
+    npx playwright install webkit

@@ -1,0 +1,58 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src:/app/src
+      - ./api:/app/api
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+    environment:
+      - VITE_SIGNALING_SERVER=ws://signaling:4444
+    depends_on:
+      - signaling
+    networks:
+      - cd-wishlist
+
+  signaling:
+    build:
+      context: .
+      dockerfile: Dockerfile.signaling
+    ports:
+      - "4444:4444"
+    environment:
+      - PORT=4444
+    networks:
+      - cd-wishlist
+
+  playwright:
+    image: mcr.microsoft.com/playwright/mcp
+    entrypoint: node
+    command: ["/app/cli.js", "--headless", "--browser", "chromium", "--no-sandbox", "--port", "3000", "--host", "0.0.0.0"]
+    depends_on:
+      - frontend
+      - signaling
+    ports:
+      - "3000:3000"
+    networks:
+      - cd-wishlist
+
+  playwright-browser2:
+    image: mcr.microsoft.com/playwright/mcp
+    entrypoint: node
+    command: ["/app/cli.js", "--headless", "--browser", "chromium", "--no-sandbox", "--port", "3001", "--host", "0.0.0.0"]
+    depends_on:
+      - frontend
+      - signaling
+    ports:
+      - "3001:3001"
+    networks:
+      - cd-wishlist
+
+networks:
+  cd-wishlist:
+    driver: bridge
