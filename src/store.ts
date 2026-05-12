@@ -72,10 +72,6 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
     },
   });
 
-  provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
-    console.log('[webrtc] peers:', webrtcPeers.length, webrtcPeers);
-  });
-
   provider.on('synced', () => {
     console.log('[webrtc] synced');
   });
@@ -84,7 +80,6 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
 }
 
 let provider = createProvider(store.getState().settings);
-
 let lastPeerCount = 0;
 let oscillationCount = 0;
 let lastLogTime = Date.now();
