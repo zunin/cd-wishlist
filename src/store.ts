@@ -61,7 +61,14 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
   const signalingUrls = getSignalingUrls(settings);
   const iceConfig = getIceConfig(settings);
 
-  return new WebrtcProvider(settings.roomName, yDoc, {
+  console.log('[webrtc] Creating provider with config:', {
+    signalingUrls,
+    iceConfig,
+    maxConns: settings.maxConns,
+    filterBcConns: settings.filterBcConns,
+  });
+
+  const provider = new WebrtcProvider(settings.roomName, yDoc, {
     password: settings.password || undefined,
     signaling: signalingUrls,
     awareness: new awarenessProtocol.Awareness(yDoc),
@@ -71,17 +78,23 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
       config: iceConfig,
     },
   });
+
+  provider.on('status', ({ connected }: { connected: boolean }) => {
+    console.log('[webrtc] status changed:', connected);
+  });
+
+  provider.on('peers', ({ webrtcPeers, added, removed }: { webrtcPeers: string[], added?: string[], removed?: string[] }) => {
+    console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers, 'added:', added, 'removed:', removed);
+  });
+
+  provider.on('synced', () => {
+    console.log('[webrtc] synced with remote peers');
+  });
+
+  return provider;
 }
 
 let provider = createProvider(store.getState().settings);
-
-provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
-  console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers);
-});
-
-provider.on('synced', () => {
-  console.log('[webrtc] synced with remote peers');
-});
 
 yDoc.on('update', (update: Uint8Array, origin: unknown) => {
   const isRemote = origin !== persistence;
@@ -91,15 +104,6 @@ yDoc.on('update', (update: Uint8Array, origin: unknown) => {
 function restartProvider() {
   provider.destroy();
   provider = createProvider(store.getState().settings);
-
-  provider.on('peers', ({ webrtcPeers }: { webrtcPeers: string[] }) => {
-    console.log('[webrtc] peers changed:', webrtcPeers.length, 'peers:', webrtcPeers);
-  });
-
-  provider.on('synced', () => {
-    console.log('[webrtc] synced with remote peers');
-  });
-
   store.dispatch(clearRestartFlag());
 }
 
