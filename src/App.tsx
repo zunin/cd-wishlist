@@ -9,6 +9,7 @@ import { Wishlist } from "./components/Wishlist.tsx";
 import { SyncStatus } from "./components/SyncStatus.tsx";
 import { SyncDebug } from "./components/SyncDebug.tsx";
 import { SettingsPage } from "./components/SettingsPage.tsx";
+import { UpdateNotification } from "./components/UpdateNotification.tsx";
 import { Provider } from "react-redux";
 import store from "./store.ts";
 import { useAppSelector } from "./reduxhooks.ts";
@@ -39,6 +40,7 @@ const AppContent: FC = () => {
 
   return (
     <>
+      <UpdateNotification />
       <nav className="app-nav">
         <button
           type="button"

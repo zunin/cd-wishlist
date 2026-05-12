@@ -45,12 +45,6 @@ function getIceServers(settings: SyncSettings): { urls: string }[] {
 
 function getIceConfig(settings: SyncSettings): RTCConfiguration {
   const iceServers = getIceServers(settings);
-  if (settings.localNetworkOnly) {
-    return {
-      iceTransportPolicy: 'local' as RTCIceTransportPolicy,
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-    };
-  }
   return {
     iceTransportPolicy: 'all' as RTCIceTransportPolicy,
     iceServers,
@@ -60,7 +54,15 @@ function getIceConfig(settings: SyncSettings): RTCConfiguration {
 function createProvider(settings: SyncSettings): WebrtcProvider {
   const signalingUrls = getSignalingUrls(settings);
   const iceConfig = getIceConfig(settings);
-  console.log('[config]', JSON.stringify({ signalingUrls, iceConfig, localNetworkOnly: settings.localNetworkOnly }));
+  const iceServers = iceConfig.iceServers || [];
+  const hasTurn = iceServers.some(s => s.urls.includes('turn'));
+  console.log('[config]', JSON.stringify({ 
+    signalingUrls, 
+    iceTransportPolicy: iceConfig.iceTransportPolicy,
+    iceServerCount: iceServers.length,
+    hasTurn,
+    localNetworkOnly: settings.localNetworkOnly 
+  }));
   const provider = new WebrtcProvider(settings.roomName, yDoc, {
     password: settings.password || undefined,
     signaling: signalingUrls,

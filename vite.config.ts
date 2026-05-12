@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 const reactPlugin = react();
+const buildTime = new Date().toISOString();
+
 const swPlugin = VitePWA({
   registerType: "prompt",
   devOptions: {
@@ -14,8 +16,10 @@ const swPlugin = VitePWA({
       src: "vite.svg",
       sizes: "any",
     }],
+    version: "1.0.0",
   },
   workbox: {
+    dontCacheBustURLsMatching: /./,
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/musicbrainz\.org\/.*/i,
@@ -61,4 +65,7 @@ export default defineConfig({
     reactPlugin,
     swPlugin,
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(buildTime),
+  },
 });
