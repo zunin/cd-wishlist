@@ -6,7 +6,7 @@ const reactPlugin = react();
 const buildTime = new Date().toISOString();
 
 const swPlugin = VitePWA({
-  registerType: "prompt",
+  registerType: "autoUpdate",
   devOptions: {
     enabled: true,
   },
@@ -19,7 +19,7 @@ const swPlugin = VitePWA({
     version: "1.0.0",
   },
   workbox: {
-    dontCacheBustURLsMatching: /./,
+    globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/musicbrainz\.org\/.*/i,
