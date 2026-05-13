@@ -290,6 +290,140 @@
   font-size: 0.8rem;
 }
 
+.data-source-health {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.data-source-health__header {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 1rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #333;
+}
+
+.data-source-health__row {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: #0a0a0a;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  align-items: center;
+}
+
+.data-source-health__url {
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-source-health__status {
+  text-align: center;
+  font-weight: 500;
+}
+
+.data-source-health__status--untested {
+  color: #666;
+}
+
+.data-source-health__status--testing {
+  color: #eab308;
+}
+
+.data-source-health__status--success {
+  color: #22c55e;
+}
+
+.data-source-health__status--error {
+  color: #ef4444;
+}
+
+.data-source-list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.data-source-list__header {
+  display: grid;
+  grid-template-columns: 1fr 80px 70px 36px;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.7rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #333;
+}
+
+.data-source-list__row {
+  display: grid;
+  grid-template-columns: 1fr 80px 70px 36px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.data-source-list__input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.data-source-list__input:focus {
+  outline: none;
+  border-color: #888;
+}
+
+.data-source-list__input::placeholder {
+  color: #555;
+}
+
+.data-source-list__status {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.data-source-list__status--untested {
+  color: #666;
+}
+
+.data-source-list__status--testing {
+  color: #eab308;
+}
+
+.data-source-list__status--success {
+  color: #22c55e;
+}
+
+.data-source-list__status--error {
+  color: #ef4444;
+}
+
+.data-source-list__status--empty {
+  color: #444;
+}
+
+.data-source-list__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .update-notification {
   position: fixed;
   bottom: 1rem;

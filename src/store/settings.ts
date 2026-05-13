@@ -11,9 +11,14 @@ export interface SyncSettings {
   localNetworkOnly: boolean;
 }
 
+function getDefaultSignalingUrl(): string {
+  return (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SIGNALING_URL)
+    || "wss://cdwishlist-signaling.nikolaioellegaard.deno.net";
+}
+
 export const DEFAULT_SETTINGS: SyncSettings = {
   roomName: "com.github.cdwishlist",
-  signalingUrl: "wss://cdwishlist-signaling.nikolaioellegaard.deno.net",
+  signalingUrl: getDefaultSignalingUrl(),
   password: "",
   maxConns: 25,
   filterBcConns: true,

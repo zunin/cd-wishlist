@@ -1,10 +1,61 @@
 import type { FC } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../reduxhooks.ts";
 import { updateSetting, resetToDefaults } from "../store/settings.ts";
+
+type DataSourceStatus = "untested" | "testing" | "success" | "error";
 
 export const SettingsPage: FC = () => {
   const dispatch = useAppDispatch();
   const settings = useAppSelector((state) => state.settings);
+  const [dataSourceStatuses, setDataSourceStatuses] = useState<Record<string, DataSourceStatus>>({});
+  const [dataSources, setDataSources] = useState<string[]>(settings.dataSources);
+
+  const testDataSource = async (url: string) => {
+    setDataSourceStatuses((prev) => ({ ...prev, [url]: "testing" }));
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid format");
+      }
+      setDataSourceStatuses((prev) => ({ ...prev, [url]: "success" }));
+    } catch {
+      setDataSourceStatuses((prev) => ({ ...prev, [url]: "error" }));
+    }
+  };
+
+  useEffect(() => {
+    const testAll = () => {
+      settings.dataSources.forEach((url) => {
+        if (url.trim()) testDataSource(url.trim());
+      });
+    };
+    if (settings.dataSources.length > 0) {
+      testAll();
+    }
+  }, []);
+
+  const updateDataSource = (index: number, value: string) => {
+    const updated = [...dataSources];
+    updated[index] = value;
+    setDataSources(updated);
+    dispatch(updateSetting({ key: "dataSources", value: updated.filter((s) => s.trim()) }));
+  };
+
+  const addDataSource = () => {
+    const updated = [...dataSources, ""];
+    setDataSources(updated);
+  };
+
+  const removeDataSource = (index: number) => {
+    const updated = dataSources.filter((_, i) => i !== index);
+    setDataSources(updated);
+    dispatch(updateSetting({ key: "dataSources", value: updated.filter((s) => s.trim()) }));
+  };
 
   return (
     <div className="settings-page">
@@ -86,6 +137,70 @@ export const SettingsPage: FC = () => {
       </div>
 
       <div className="settings-group">
+        <label>Data Sources</label>
+        <div className="data-source-list">
+          <div className="data-source-list__header">
+            <span>URL</span>
+            <span>Status</span>
+            <span></span>
+          </div>
+          {dataSources.map((url, i) => (
+            <div key={i} className="data-source-list__row">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => updateDataSource(i, e.target.value)}
+                placeholder="https://raw.githubusercontent.com/user/repo/master/cds.json"
+                className="data-source-list__input"
+              />
+              <span className={`data-source-list__status data-source-list__status--${url ? (dataSourceStatuses[url] || "untested") : "empty"}`}>
+                {url ? (
+                  dataSourceStatuses[url] === "testing" ? "Testing..." :
+                  dataSourceStatuses[url] === "success" ? "✓ OK" :
+                  dataSourceStatuses[url] === "error" ? "✗ Failed" :
+                  "—"
+                ) : "—"}
+              </span>
+              <button
+                type="button"
+                className="btn btn--small"
+                onClick={() => url && testDataSource(url)}
+                disabled={!url || dataSourceStatuses[url] === "testing"}
+                title="Test this source"
+              >
+                {url && dataSourceStatuses[url] === "testing" ? "..." : "Test"}
+              </button>
+              <button
+                type="button"
+                className="btn btn--small btn--danger"
+                onClick={() => removeDataSource(i)}
+                title="Remove this source"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <div className="data-source-list__actions">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={addDataSource}
+            >
+              + Add Source
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => dataSources.forEach((url) => url.trim() && testDataSource(url.trim()))}
+            >
+              Test All
+            </button>
+          </div>
+        </div>
+        <span className="setting-hint">URLs to JSON files containing CD wishlist data.</span>
+      </div>
+
+      <div className="settings-group">
         <label htmlFor="iceServers">ICE Servers (one per line)</label>
         <textarea
           id="iceServers"
@@ -95,18 +210,6 @@ export const SettingsPage: FC = () => {
           placeholder="stun:stun.l.google.com:19302"
         />
         <span className="setting-hint">STUN/TURN servers for NAT traversal. One URL per line.</span>
-      </div>
-
-      <div className="settings-group">
-        <label htmlFor="dataSources">Data Sources (one per line)</label>
-        <textarea
-          id="dataSources"
-          rows={5}
-          value={settings.dataSources.join("\n")}
-          onChange={(e) => dispatch(updateSetting({ key: "dataSources", value: e.target.value.split("\n").filter((s) => s.trim()) }))}
-          placeholder="https://raw.githubusercontent.com/user/repo/master/cds.json"
-        />
-        <span className="setting-hint">URLs to JSON files containing CD wishlist data. One URL per line.</span>
       </div>
 
       <div className="settings-actions">

@@ -15,6 +15,7 @@ const Centered: FC<{ musicBrainz: MusicbrainzMeta }> = ({ musicBrainz }) => (
   <img
     style={{ maxHeight: "250px", maxWidth: "250" }}
     src={`https://coverartarchive.org/release-group/${musicBrainz.releaseGroupId}/front-250`}
+    alt={`Cover art for ${musicBrainz.albumTitle} by ${musicBrainz.artist}`}
   />
 );
 
@@ -78,8 +79,6 @@ const AlbumArtistResult: FC<
       className="box invert"
       key={musicBrainz.releaseGroupId}
       style={{ maxWidth: "300px", padding: "1em" }}
-      hx-target="this"
-      hx-swap="outerHTML"
     >
       <Cover result={{ musicBrainz, available }}></Cover>
     </div>

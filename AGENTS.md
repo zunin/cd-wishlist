@@ -11,15 +11,17 @@ React SPA with Y.js WebRTC sync for collaborative wishlist management.
 
 ## Developer Commands
 
+All commands run inside Docker containers — no local dependencies needed.
+
 ```bash
-deno task dev          # Start Vite dev server (http://localhost:5173)
-deno task typecheck    # Type-check only (deno check src/main.tsx)
-deno task lint         # Run ESLint (deno run -A npm:eslint .)
-deno task build        # Typecheck + production build (typecheck && vite build)
-deno task signal       # Run signaling server (ws://localhost:4444)
+docker compose run --rm frontend deno task dev          # Start Vite dev server (http://localhost:5173)
+docker compose run --rm frontend deno task typecheck     # Type-check only
+docker compose run --rm frontend deno task lint          # Run ESLint
+docker compose run --rm frontend deno task build         # Typecheck + production build
+docker compose run --rm frontend deno task signal        # Run signaling server (ws://localhost:4444)
 ```
 
-Note: `build` runs typecheck first, then build. If typecheck fails, the build does not run.
+Note: `build` runs typecheck first; if typecheck fails, the build does not run.
 
 ## Architecture Docs
 
@@ -31,12 +33,14 @@ All ADRs are in `doc/arch/adr-*.md` (Nygard format). Read them before structural
 |---------|--------------|--------------|
 | Frontend | http://frontend:5173 | http://localhost:5173 |
 | Signaling | ws://signaling:4444 | ws://localhost:4444 |
-| Playwright MCP | - | ws://localhost:3000, 3001 |
+| Playwright MCP | - | http://localhost:3000/mcp, http://localhost:3001/mcp |
+
+## Build
 
 ```bash
-docker compose up -d   # Start all services
-docker compose down    # Stop all services
-docker compose ps       # Verify running
+docker compose build        # Build all images
+docker compose up -d        # Start all services (frontend, signaling, playwright x2)
+docker compose ps           # Verify all containers are running
 ```
 
 ## Playwright MCP (for testing WebRTC sync)
