@@ -12,14 +12,14 @@ class ReleaseHistoryRepository {
             cd6000 = await (await fetch(
               "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json",
             )).json() as Release[];
-          } catch (_) {
+          } catch {
             cd6000 = [] as Release[];
           }
           try {
             rytmeboxen = await (await fetch(
               "https://raw.githubusercontent.com/zunin/cd6000.dk-history/main/cds.json",
             )).json() as Release[];
-          } catch (_) {
+          } catch {
             rytmeboxen = [] as Release[];
           }
           return cd6000.concat(rytmeboxen);

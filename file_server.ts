@@ -1,7 +1,5 @@
 import { parseArgs } from "https://deno.land/std@0.217.0/cli/parse_args.ts";
 import { serveDir } from "https://deno.land/std@0.217.0/http/file_server.ts";
-import { VERSION } from "https://deno.land/std@0.217.0/version.ts";
-
 import { resolve } from "https://deno.land/std@0.217.0/path/resolve.ts";
 
 function main() {

@@ -690,6 +690,22 @@
   border-color: #888;
 }
 
+.room-name-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.room-name-input input {
+  flex: 1;
+}
+
+.btn--icon {
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sync-room__share {
   display: flex;
   flex-direction: column;

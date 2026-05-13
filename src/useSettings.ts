@@ -18,7 +18,7 @@ interface Settings {
 
 
 export default function UseSettings(): [Settings, React.Dispatch<React.SetStateAction<Settings>>] {
-  const [yDoc, setYDoc] = useState(new Y.Doc());
+  const [yDoc] = useState(new Y.Doc());
   const [settings, setSettings] = useState({
     roomName: "com.github.cdwishlist",
     password: undefined,
@@ -30,13 +30,17 @@ export default function UseSettings(): [Settings, React.Dispatch<React.SetStateA
     ],
   } as Settings);
   useEffect(() => {
-    const persistence = new IndexeddbPersistence("com.github.cdwishlist", yDoc);
+    new IndexeddbPersistence("com.github.cdwishlist", yDoc);
 
     const provider = new WebrtcProvider(settings.roomName, yDoc, {
       password: settings.password,
       signaling: settings.signalUris,
       awareness: new awarenessProtocol.Awareness(yDoc),
     });
+
+    return () => {
+      provider.destroy();
+    };
   }, [settings, yDoc]);
   
   return [settings, setSettings];

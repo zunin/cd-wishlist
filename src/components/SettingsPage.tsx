@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { useState, useEffect, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "../reduxhooks.ts";
-import { updateSetting, resetToDefaults } from "../store/settings.ts";
+import { updateSetting, resetToDefaults, generateMemorableRoom } from "../store/settings.ts";
 
 type DataSourceStatus = "untested" | "testing" | "success" | "error";
 
@@ -70,7 +70,7 @@ export const SettingsPage: FC = () => {
     if (settings.dataSources.length > 0) {
       testAll();
     }
-  }, []);
+  }, [settings.dataSources]);
 
   const updateDataSource = (index: number, value: string) => {
     const updated = [...dataSources];
@@ -100,13 +100,28 @@ export const SettingsPage: FC = () => {
           <div className="sync-room__fields">
             <div className="sync-room__field">
               <label htmlFor="roomName">Room Name</label>
-              <input
-                id="roomName"
-                type="text"
-                value={settings.roomName}
-                onChange={(e) => dispatch(updateSetting({ key: "roomName", value: e.target.value }))}
-                placeholder="com.github.cdwishlist"
-              />
+              <div className="room-name-input">
+                <input
+                  id="roomName"
+                  type="text"
+                  value={settings.roomName}
+                  onChange={(e) => dispatch(updateSetting({ key: "roomName", value: e.target.value }))}
+                  placeholder="CosmicPanda"
+                />
+                <button
+                  type="button"
+                  className="btn btn--icon"
+                  onClick={() => dispatch(updateSetting({ key: "roomName", value: generateMemorableRoom() }))}
+                  title="Generate new room name"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 2v6h-6" />
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                    <path d="M3 22v-6h6" />
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="sync-room__field">
               <label htmlFor="password">Password</label>

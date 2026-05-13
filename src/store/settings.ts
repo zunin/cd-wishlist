@@ -11,13 +11,33 @@ export interface SyncSettings {
   localNetworkOnly: boolean;
 }
 
+const ADJECTIVES = [
+  "Cosmic", "Swift", "Lazy", "Bold", "Silver", "Mystic", "Wild", "Jolly",
+  "Crisp", "Velvet", "Golden", "Azure", "Crimson", "Emerald", "Solar", "Lunar",
+  "Stellar", "Gentle", "Fierce", "Calm", "Proud", "Keen", "Noble", "Vivid",
+  "Silent", "Bright", "Serene", "Mighty", "Zephyr", "Aurora", "Frost", "Ivy",
+];
+
+const NOUNS = [
+  "Panda", "Fox", "River", "Star", "Moon", "Eagle", "Wolf", "Owl",
+  "Hawk", "Bear", "Lynx", "Crane", "Raven", "Tiger", "Falcon", "Orca",
+  "Phoenix", "Dragon", "Heron", "Otter", "Mink", "Viper", "Cobra", "Bison",
+  "Puma", "Moose", "Marten", "Quail", "Finch", " Wren", "Kite", "Lark",
+];
+
+function generateMemorableRoom(): string {
+  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+  return adj + noun;
+}
+
 function getDefaultSignalingUrl(): string {
   return (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SIGNALING_URL)
     || "wss://cdwishlist-signaling.nikolaioellegaard.deno.net";
 }
 
 export const DEFAULT_SETTINGS: SyncSettings = {
-  roomName: "com.github.cdwishlist",
+  roomName: generateMemorableRoom(),
   signalingUrl: getDefaultSignalingUrl(),
   password: "",
   maxConns: 25,
@@ -85,4 +105,5 @@ export const settingsSlice = createSlice({
 });
 
 export const { updateSetting, resetToDefaults, clearRestartFlag } = settingsSlice.actions;
+export { generateMemorableRoom };
 export default settingsSlice.reducer;
