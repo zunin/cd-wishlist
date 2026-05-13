@@ -1,102 +1,50 @@
-# CD Wishlist Development
+# CD Wishlist
 
-## Overview
+React SPA with Y.js WebRTC sync for collaborative wishlist management.
 
-This is a React SPA with Y.js WebRTC synchronization for collaborative wishlist management.
+## Key Facts
 
-## Architecture
+- **Runtime**: Deno (not Node.js). All scripts use `deno run` or `deno task`.
+- **Package imports**: Uses `npm:` prefix for npm packages (e.g., `npm:vite`, `npm:react`).
+- **State**: Redux + redux-yjs-bindings. Redux manages UI state, Y.js handles sync. Provider restarts when sync settings change.
+- **Signaling**: Custom WebSocket server (`signaling-server.ts`). Room data is ephemeral.
 
-All significant architecture decisions are documented in `doc/arch/adr-*.md`. Before making structural changes, read the relevant ADRs to understand why decisions were made. Each ADR follows the Nygard format (Context, Decision, Consequences).
+## Developer Commands
 
-## Development Environment
+```bash
+deno task dev          # Start Vite dev server (http://localhost:5173)
+deno task typecheck    # Type-check only (deno check src/main.tsx)
+deno task lint         # Run ESLint (deno run -A npm:eslint .)
+deno task build        # Typecheck + production build (typecheck && vite build)
+deno task signal       # Run signaling server (ws://localhost:4444)
+```
 
-### Prerequisites
+Note: `build` runs typecheck first, then build. If typecheck fails, the build does not run.
 
-- Docker must be installed and running
-- Verify Docker is working: `docker ps`
-- Docker network `cd-wishlist` is created automatically by `docker compose up`
+## Architecture Docs
 
-### Services
+All ADRs are in `doc/arch/adr-*.md` (Nygard format). Read them before structural changes.
+
+## Docker Services
 
 | Service | Internal URL | External URL |
 |---------|--------------|--------------|
 | Frontend | http://frontend:5173 | http://localhost:5173 |
-| Signaling Server | ws://signaling:4444 | ws://localhost:4444 |
-
-Use internal URLs from within Docker containers, external URLs from host machine.
-
-### Running Services
+| Signaling | ws://signaling:4444 | ws://localhost:4444 |
+| Playwright MCP | - | ws://localhost:3000, 3001 |
 
 ```bash
-# Start all services (frontend, signaling, playwright MCP servers)
-docker compose up -d
-
-# Verify all services are running
-docker compose ps
-
-# Stop all services
-docker compose down
+docker compose up -d   # Start all services
+docker compose down    # Stop all services
+docker compose ps       # Verify running
 ```
 
-### Development Without Docker
+## Playwright MCP (for testing WebRTC sync)
 
-The frontend can run directly on the host:
-
-```bash
-deno task dev
-```
-
-This uses Vite dev server directly. Note: Without Docker, the signaling server and playwright MCP must still be run via Docker.
-
-### Playwright MCP Servers
-
-Two Playwright MCP server instances are configured for browser automation.
-
-#### How MCP Discovery Works
-
-OpenCode reads `opencode.json` and spawns MCP servers as local subprocesses using `start-mcp.sh`. Each script launches a `mcr.microsoft.com/playwright/mcp` Docker container.
-
-#### Network Configuration
-
-The MCP containers need to reach the signaling server at `ws://signaling:4444`. The script uses `--add-host=signaling:host-gateway` to resolve the `signaling` hostname from the host machine.
-
-If the signaling server isn't available, browsers will still work but WebRTC sync won't connect peers.
-
-## Available Tools
-
-### Browser Control
-
-The agent can use Playwright MCP tools to control browsers. Tool names follow the pattern `{mcp-name}_browser_{action}`.
-
-Available MCP servers (configured in opencode.json):
-- `playwright` - Primary browser on port 3000
-- `playwright-browser2` - Secondary browser on port 3001
-
-Example usage:
-```
-use playwright to navigate to http://localhost:5173
-use playwright-browser2 to take a snapshot of the page
-```
-
-Tools are auto-discovered - the agent will show available browser tools when needed.
+`docker compose up -d` exposes two MCP servers on ports 3000 and 3001. Both are needed to verify WebRTC sync — each browser represents a separate peer. Tool names follow `{mcp-name}_browser_{action}` pattern (e.g., `playwright_browser_navigate`, `playwright-browser2_browser_navigate`).
 
 ## Troubleshooting
 
-### MCP servers won't start
+**MCP servers won't start**: Check Docker is running (`docker ps`), ports 3000/3001 are free.
 
-1. Ensure Docker is running: `docker ps`
-2. Check that ports 3000/3001 are not in use: `docker compose ps`
-3. View container logs: `docker compose logs playwright`
-
-### Browsers can't reach signaling server
-
-- From inside Docker: `ws://signaling:4444` (use `signaling` hostname)
-- From host: `ws://localhost:4444` (use `localhost`)
-- Update browser settings in the app to match your network
-
-### WebRTC sync not working between browsers
-
-1. Both browsers must use the same signaling server URL
-2. Check Settings page in the app to verify signaling URL
-3. Ensure "Local Network Only" is disabled if testing across different networks
-4. Check the Debug page ("Synced · N peers" indicator shows connection status)
+**WebRTC sync broken**: Both browsers must use the same signaling URL. Check the Debug page for "Synced · N peers" status.
