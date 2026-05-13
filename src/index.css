@@ -601,3 +601,97 @@
   overflow-x: auto;
   max-height: 200px;
 }
+
+.share-link {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.share-link__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #0a0a0a;
+  border-radius: 6px;
+}
+
+.share-link__row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.share-link__input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ccc;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.share-link__input:focus {
+  outline: none;
+  border-color: #888;
+}
+
+.share-link__qr {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.share-link__qr img {
+  width: 150px;
+  height: 150px;
+}
+
+.sync-room {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sync-room__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.sync-room__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sync-room__field label {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.sync-room__field input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.sync-room__field input:focus {
+  outline: none;
+  border-color: #888;
+}
+
+.sync-room__share {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

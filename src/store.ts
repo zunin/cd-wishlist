@@ -1,6 +1,6 @@
 import { configureStore, type Store } from '@reduxjs/toolkit'
 import wishlistReducer from "./store/wishlist.ts";
-import settingsReducer, { DEFAULT_SETTINGS, type SyncSettings, clearRestartFlag } from "./store/settings.ts";
+import settingsReducer, { DEFAULT_SETTINGS, type SyncSettings, clearRestartFlag, updateSetting } from "./store/settings.ts";
 
 import { Doc, transact, Array as YArray, Map as YMap } from 'yjs';
 import { WebrtcProvider } from "y-webrtc";
@@ -213,6 +213,24 @@ persistence.on('synced', bindOnce);
 window.addEventListener('beforeunload', () => {
   provider.destroy();
 });
+
+export function updateSettingsFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const room = params.get("room");
+  const password = params.get("password");
+
+  if (room) {
+    store.dispatch(updateSetting({ key: "roomName", value: room }));
+  }
+  if (password) {
+    store.dispatch(updateSetting({ key: "password", value: password }));
+  }
+
+  if (room || password) {
+    const newUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
+  }
+}
 
 export { provider, yDoc };
 export type RootState = ReturnType<typeof store.getState>;

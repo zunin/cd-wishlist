@@ -22,7 +22,7 @@
     "vite-plugin-pwa": "^1.0.2",
     "zod": "4.0.17",
     "vite-plugin-sw": "1.0.2",
-    "yjs" :"13.6.27",
+    "yjs": "13.6.27",
     "react-yjs": "2.0.1",
     "y-indexeddb": "9.0.12",
     "y-webrtc": "10.3.0",
@@ -32,7 +32,8 @@
     "react-dom": "^19",
     "react-redux": "9.2.0",
     "@reduxjs/toolkit": "^2.8.2",
-    "redux-yjs-bindings": "0.3.1"
+    "redux-yjs-bindings": "0.3.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

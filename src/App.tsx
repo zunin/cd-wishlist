@@ -11,7 +11,7 @@ import { SyncDebug } from "./components/SyncDebug.tsx";
 import { SettingsPage } from "./components/SettingsPage.tsx";
 import { UpdateNotification } from "./components/UpdateNotification.tsx";
 import { Provider } from "react-redux";
-import store from "./store.ts";
+import store, { updateSettingsFromUrl } from "./store.ts";
 import { useAppSelector } from "./reduxhooks.ts";
 
 type View = "main" | "settings" | "debug";
@@ -20,6 +20,10 @@ const AppContent: FC = () => {
   const [releases, setReleases] = useState([] as Array<Release>);
   const [view, setView] = useState<View>("main");
   const dataSources = useAppSelector((state) => state.settings.dataSources);
+
+  useEffect(() => {
+    updateSettingsFromUrl();
+  }, []);
 
   useEffect(() => {
     async function createRequest() {

@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "../reduxhooks.ts";
 import { updateSetting, resetToDefaults } from "../store/settings.ts";
 
@@ -10,6 +10,10 @@ export const SettingsPage: FC = () => {
   const settings = useAppSelector((state) => state.settings);
   const [dataSourceStatuses, setDataSourceStatuses] = useState<Record<string, DataSourceStatus>>({});
   const [dataSources, setDataSources] = useState<string[]>(settings.dataSources);
+  const [shareLink, setShareLink] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const testDataSource = async (url: string) => {
     setDataSourceStatuses((prev) => ({ ...prev, [url]: "testing" }));
@@ -25,6 +29,35 @@ export const SettingsPage: FC = () => {
       setDataSourceStatuses((prev) => ({ ...prev, [url]: "success" }));
     } catch {
       setDataSourceStatuses((prev) => ({ ...prev, [url]: "error" }));
+    }
+  };
+
+  const generateShareLink = async () => {
+    const room = settings.roomName || "default";
+    const password = settings.password;
+    const baseUrl = window.location.origin;
+    const link = password ? `${baseUrl}?room=${encodeURIComponent(room)}&password=${encodeURIComponent(password)}` : `${baseUrl}?room=${encodeURIComponent(room)}`;
+    setShareLink(link);
+
+    try {
+      const QRCode = await import("qrcode");
+      const canvas = qrCanvasRef.current;
+      if (canvas) {
+        await QRCode.toCanvas(canvas, link, { width: 200, margin: 2 });
+        setQrCodeUrl(canvas.toDataURL());
+      }
+    } catch (e) {
+      console.error("Failed to generate QR code:", e);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      console.error("Failed to copy to clipboard");
     }
   };
 
@@ -61,16 +94,67 @@ export const SettingsPage: FC = () => {
     <div className="settings-page">
       <h2>Synchronization Settings</h2>
 
-      <div className="settings-group">
-        <label htmlFor="roomName">Room Name</label>
-        <input
-          id="roomName"
-          type="text"
-          value={settings.roomName}
-          onChange={(e) => dispatch(updateSetting({ key: "roomName", value: e.target.value }))}
-          placeholder="com.github.cdwishlist"
-        />
-        <span className="setting-hint">Unique identifier for the sync room. All clients in the same room share data.</span>
+      <div className="settings-group settings-group--sync">
+        <label>Sync Room</label>
+        <div className="sync-room">
+          <div className="sync-room__fields">
+            <div className="sync-room__field">
+              <label htmlFor="roomName">Room Name</label>
+              <input
+                id="roomName"
+                type="text"
+                value={settings.roomName}
+                onChange={(e) => dispatch(updateSetting({ key: "roomName", value: e.target.value }))}
+                placeholder="com.github.cdwishlist"
+              />
+            </div>
+            <div className="sync-room__field">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={settings.password}
+                onChange={(e) => dispatch(updateSetting({ key: "password", value: e.target.value }))}
+                placeholder="(optional)"
+              />
+            </div>
+          </div>
+          <div className="sync-room__share">
+            <button
+              type="button"
+              className="btn btn--success"
+              onClick={generateShareLink}
+            >
+              Generate Share Link
+            </button>
+            {shareLink && (
+              <div className="share-link">
+                <div className="share-link__row">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareLink}
+                    className="share-link__input"
+                  />
+                  <button
+                    type="button"
+                    className={`btn ${copied ? "btn--success" : "btn--secondary"}`}
+                    onClick={copyToClipboard}
+                  >
+                    {copied ? "✓ Copied" : "Copy"}
+                  </button>
+                </div>
+                {qrCodeUrl && (
+                  <div className="share-link__qr">
+                    <img src={qrCodeUrl} alt="QR Code" />
+                  </div>
+                )}
+              </div>
+            )}
+            <canvas ref={qrCanvasRef} style={{ display: "none" }} />
+          </div>
+        </div>
+        <span className="setting-hint">Set a room name and optional password, then generate a share link to sync with others.</span>
       </div>
 
       <div className="settings-group">
@@ -83,18 +167,6 @@ export const SettingsPage: FC = () => {
           placeholder="wss://cdwishlist-signaling.deno.dev"
         />
         <span className="setting-hint">WebSocket URL for the WebRTC signaling server. One per line for multiple.</span>
-      </div>
-
-      <div className="settings-group">
-        <label htmlFor="password">Room Password</label>
-        <input
-          id="password"
-          type="password"
-          value={settings.password}
-          onChange={(e) => dispatch(updateSetting({ key: "password", value: e.target.value }))}
-          placeholder="(optional)"
-        />
-        <span className="setting-hint">Encrypts communication over the signaling server. All clients must use the same password.</span>
       </div>
 
       <div className="settings-group">
