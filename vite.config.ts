@@ -47,10 +47,10 @@ const swPlugin = VitePWA({
           cacheName: "coverartarchive",
           expiration: {
             maxEntries: 1000,
-            maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+            maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year - cache forever like MusicBrainz
           },
           cacheableResponse: {
-            statuses: [0, 200],
+            statuses: [200], // Only cache successful responses, never cache errors
           },
         },
       },

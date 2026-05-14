@@ -1,8 +1,74 @@
 import { type Release } from "../models/Release.ts";
 import { type MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
-import { FC } from "react";
+import { FC, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../reduxhooks.ts";
 import { addItem, removeItem } from "../store/wishlist.ts";
+
+// Cover Art component with lazy loading and error handling
+const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = ({ musicBrainz }) => {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const handleError = useCallback(() => {
+    setHasError(true);
+    setIsLoading(false);
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    setIsLoading(false);
+    setHasError(false);
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    setHasError(false);
+    setIsLoading(true);
+    setRetryKey(prev => prev + 1);
+  }, []);
+
+  const imageUrl = `https://coverartarchive.org/release-group/${musicBrainz.releaseGroupId}/front-250?retry=${retryKey}`;
+
+  if (hasError) {
+    return (
+      <div className="cover-art-error">
+        <div className="music-note-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="64" height="64">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+        </div>
+        <button 
+          type="button" 
+          className="btn btn--small btn--retry"
+          onClick={handleRetry}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cover-art-container">
+      {isLoading && (
+        <div className="cover-art-loading">
+          <div className="skeleton-image" />
+        </div>
+      )}
+      <img
+        style={{ 
+          maxHeight: "250px", 
+          maxWidth: "250px",
+          display: isLoading ? "none" : "block"
+        }}
+        src={imageUrl}
+        alt={`Cover art for ${musicBrainz.albumTitle} by ${musicBrainz.artist}`}
+        loading="lazy"
+        onError={handleError}
+        onLoad={handleLoad}
+      />
+    </div>
+  );
+};
 
 const Header: FC<{ musicBrainz: MusicbrainzMeta }> = ({ musicBrainz }) => (
   <div className="stack">
@@ -12,11 +78,7 @@ const Header: FC<{ musicBrainz: MusicbrainzMeta }> = ({ musicBrainz }) => (
 );
 
 const Centered: FC<{ musicBrainz: MusicbrainzMeta }> = ({ musicBrainz }) => (
-  <img
-    style={{ maxHeight: "250px", maxWidth: "250" }}
-    src={`https://coverartarchive.org/release-group/${musicBrainz.releaseGroupId}/front-250`}
-    alt={`Cover art for ${musicBrainz.albumTitle} by ${musicBrainz.artist}`}
-  />
+  <CoverArt musicBrainz={musicBrainz} />
 );
 
 const Footer: FC<{ musicBrainz: MusicbrainzMeta; available: Release[] }> =
