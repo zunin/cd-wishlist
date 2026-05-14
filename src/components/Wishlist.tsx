@@ -19,23 +19,35 @@ export const Wishlist: FC<
   const [results, setResults] = useState(
     [] as Array<{ musicBrainz: MusicbrainzMeta; available: Release[] }>,
   );
+  const [isLoading, setIsLoading] = useState(false);
   const [musicBrainzClient] = useState(new MusicBrainzClient());
+  
   useEffect(() => {
     async function fetch() {
-      const metaPromises = wishlist.map((item) =>
-        musicBrainzClient.getMusicBrainzHit(item.id)
-      );
-      const res = await Promise.all<MusicbrainzMeta>(metaPromises);
-      setResults(
-        res.filter((x) => !!x).map((meta) => {
-          return {
-            musicBrainz: meta,
-            available: releases.filter((r) =>
-              r.musicbrainz?.releaseGroupId === meta.releaseGroupId
-            ),
-          };
-        }),
-      );
+      if (wishlist.length === 0) {
+        setResults([]);
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        const metaPromises = wishlist.map((item) =>
+          musicBrainzClient.getMusicBrainzHit(item.id)
+        );
+        const res = await Promise.all<MusicbrainzMeta>(metaPromises);
+        setResults(
+          res.filter((x) => !!x).map((meta) => {
+            return {
+              musicBrainz: meta,
+              available: releases.filter((r) =>
+                r.musicbrainz?.releaseGroupId === meta.releaseGroupId
+              ),
+            };
+          }),
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     fetch();
@@ -46,6 +58,8 @@ export const Wishlist: FC<
       <h2>Wishlist</h2>
       <AlbumArtistResultList
         results={results}
+        isLoading={isLoading}
+        skeletonCount={wishlist.length > 0 ? wishlist.length : 3}
       >
       </AlbumArtistResultList>
     </div>

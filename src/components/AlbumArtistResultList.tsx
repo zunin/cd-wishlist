@@ -84,12 +84,41 @@ const AlbumArtistResult: FC<
     </div>
   );
 };
+const SkeletonCard: FC = () => (
+  <div
+    className="box invert skeleton-card"
+    style={{ maxWidth: "300px", padding: "1em" }}
+  >
+    <div className="skeleton-header">
+      <div className="skeleton-text skeleton-title"></div>
+      <div className="skeleton-text skeleton-subtitle"></div>
+    </div>
+    <div className="skeleton-image"></div>
+    <div className="skeleton-footer">
+      <div className="skeleton-text skeleton-button"></div>
+    </div>
+  </div>
+);
+
 export const AlbumArtistResultList: FC<
   {
     results: Array<{ musicBrainz: MusicbrainzMeta; available: Release[] }>;
+    isLoading?: boolean;
+    skeletonCount?: number;
   }
 > = (props) => {
-  const { results } = props;
+  const { results, isLoading, skeletonCount = 3 } = props;
+  
+  if (isLoading) {
+    return (
+      <div className="grid">
+        {Array.from({ length: skeletonCount }, (_, i) => (
+          <SkeletonCard key={`skeleton-${i}`} />
+        ))}
+      </div>
+    );
+  }
+  
   return (
     <div className="grid">
       {results.map((meta) => {
