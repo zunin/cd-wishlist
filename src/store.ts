@@ -45,8 +45,12 @@ function getIceServers(settings: SyncSettings): { urls: string }[] {
 
 function getIceConfig(settings: SyncSettings): RTCConfiguration {
   const iceServers = getIceServers(settings);
+  // When localNetworkOnly is enabled, restrict to local candidates only (no TURN relay)
+  const iceTransportPolicy = settings.localNetworkOnly 
+    ? 'local' as RTCIceTransportPolicy 
+    : 'all' as RTCIceTransportPolicy;
   return {
-    iceTransportPolicy: 'all' as RTCIceTransportPolicy,
+    iceTransportPolicy,
     iceServers,
   };
 }
