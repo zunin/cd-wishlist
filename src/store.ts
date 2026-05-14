@@ -1,6 +1,7 @@
 import { configureStore, type Store } from '@reduxjs/toolkit'
 import wishlistReducer from "./store/wishlist.ts";
 import settingsReducer, { DEFAULT_SETTINGS, type SyncSettings, clearRestartFlag, updateSetting } from "./store/settings.ts";
+import importQueueReducer from "./store/importQueue.ts";
 
 import { Doc, transact, Array as YArray, Map as YMap } from 'yjs';
 import { WebrtcProvider } from "y-webrtc";
@@ -24,7 +25,8 @@ const persistence = new IndexeddbPersistence("com.github.cdwishlist", yDoc);
 const store = configureStore({
   reducer: {
     wishlist: enhanceReducer(wishlistReducer),
-    settings: settingsReducer
+    settings: settingsReducer,
+    importQueue: importQueueReducer
   },
 });
 

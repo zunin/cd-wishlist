@@ -9,21 +9,33 @@ import { Wishlist } from "./components/Wishlist.tsx";
 import { SyncStatus } from "./components/SyncStatus.tsx";
 import { SyncDebug } from "./components/SyncDebug.tsx";
 import { SettingsPage } from "./components/SettingsPage.tsx";
+import { ImportPage } from "./components/ImportPage.tsx";
 import { UpdateNotification } from "./components/UpdateNotification.tsx";
 import { Provider } from "react-redux";
 import store, { updateSettingsFromUrl } from "./store.ts";
 import { useAppSelector } from "./reduxhooks.ts";
+import { useAppDispatch } from "./reduxhooks.ts";
+import { clearCurrentImport } from "./store/importQueue.ts";
 
-type View = "main" | "settings" | "debug";
+type View = "main" | "settings" | "debug" | "import";
 
 const AppContent: FC = () => {
   const [releases, setReleases] = useState([] as Array<Release>);
   const [view, setView] = useState<View>("main");
   const dataSources = useAppSelector((state) => state.settings.dataSources);
+  const dispatch = useAppDispatch();
+  const importStatus = useAppSelector((state) => state.importQueue.currentImport.status);
 
   useEffect(() => {
     updateSettingsFromUrl();
   }, []);
+
+  // Clear current import when navigating away from import view
+  useEffect(() => {
+    if (view !== "import" && importStatus !== "idle") {
+      dispatch(clearCurrentImport());
+    }
+  }, [view, importStatus, dispatch]);
 
   useEffect(() => {
     async function createRequest() {
@@ -55,6 +67,13 @@ const AppContent: FC = () => {
         </button>
         <button
           type="button"
+          className={view === "import" ? "active" : ""}
+          onClick={() => setView("import")}
+        >
+          Import
+        </button>
+        <button
+          type="button"
           className={view === "settings" ? "active" : ""}
           onClick={() => setView("settings")}
         >
@@ -79,6 +98,7 @@ const AppContent: FC = () => {
       )}
       {view === "settings" && <SettingsPage />}
       {view === "debug" && <SyncDebug />}
+      {view === "import" && <ImportPage />}
     </>
   );
 };
