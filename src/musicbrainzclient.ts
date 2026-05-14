@@ -1,11 +1,12 @@
 import { type HttpClient, type IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
 import { compareSimilarity } from "@std/text";
-import { delay } from "@std/async/delay";
 import { type MusicbrainzMeta } from "./models/MusicbrainzMeta.ts";
+import { MusicBrainzQueue, type QueueStatus } from "./utils/MusicBrainzQueue.ts";
 
 export class MusicBrainzClient {
   private mbApi: MusicBrainzApi;
   private inFlightRequests = new Map<string, Promise<MusicbrainzMeta>>();
+  private queue: MusicBrainzQueue;
 
   constructor() {
     this.mbApi = new MusicBrainzApi({
@@ -15,6 +16,23 @@ export class MusicBrainzClient {
     });
     const client = ((this.mbApi as unknown as MusicBrainzApi & {httpClient: HttpClient}).httpClient);
     (this.mbApi as unknown as {httpClient: HttpClient}).httpClient = client;;
+    
+    // Initialize queue with max 2 concurrent requests to respect rate limits
+    this.queue = new MusicBrainzQueue(2);
+  }
+
+  /**
+   * Get the queue instance for status monitoring
+   */
+  getQueue(): MusicBrainzQueue {
+    return this.queue;
+  }
+
+  /**
+   * Subscribe to queue status changes
+   */
+  onQueueStatusChange(callback: (status: QueueStatus) => void): () => void {
+    return this.queue.onStatusChange(callback);
   }
 
   async getMusicBrainzHit(
@@ -90,11 +108,6 @@ export class MusicBrainzClient {
     
     for (let i = 0; i < titlesToTry.length; i++) {
       const title = titlesToTry[i];
-      
-      // Rate limit between retries
-      if (i > 0) {
-        await delay(200);
-      }
 
       const hits = await this.searchReleaseGroup(title, artist, albumTitle, year);
       if (hits.length > 0) {
@@ -207,9 +220,14 @@ export class MusicBrainzClient {
     }
 
     try {
-      const releaseGroupSearchResult = await this.mbApi.search(
-        "release-group",
-        { query },
+      // Use queue for search to handle rate limiting
+      const releaseGroupSearchResult = await this.queue.enqueue(
+        () => this.mbApi.search("release-group", { query }),
+        {
+          description: `Search: "${albumTitle}" by "${artist.name}"`,
+          maxRetries: 5,
+          priority: 1
+        }
       );
       let sortedReleaseGroupSearchResult =
         releaseGroupSearchResult["release-groups"].sort((a, b) => {
@@ -257,16 +275,21 @@ export class MusicBrainzClient {
     year?: number
   ): Promise<MusicbrainzMeta[]> {
     let query = `artist:"${artist.name}" AND type:"Album" AND NOT type:"Live" and NOT type:"Compilation" and NOT type:"Demo" and NOT type:"Remix"`;
-    
+
     // Add year filter if provided
     if (year) {
       query += ` AND date:${year}`;
     }
-    
+
     try {
-      const releaseGroupSearchResult = await this.mbApi.search(
-        "release-group",
-        { query },
+      // Use queue for search to handle rate limiting
+      const releaseGroupSearchResult = await this.queue.enqueue(
+        () => this.mbApi.search("release-group", { query }),
+        {
+          description: `Get albums for artist: "${artist.name}"`,
+          maxRetries: 5,
+          priority: 1
+        }
       );
       let sortedReleaseGroupSearchResult =
         releaseGroupSearchResult["release-groups"];
@@ -300,10 +323,18 @@ export class MusicBrainzClient {
   }
 
   private async getArtists(cdArtist: string): Promise<IArtistMatch[]> {
-    const mbArtistSearchResult = await this.mbApi.search("artist", {
-      query: cdArtist,
-      limit: 20,
-    });
+    // Use queue for search to handle rate limiting
+    const mbArtistSearchResult = await this.queue.enqueue(
+      () => this.mbApi.search("artist", {
+        query: cdArtist,
+        limit: 20,
+      }),
+      {
+        description: `Search artist: "${cdArtist}"`,
+        maxRetries: 5,
+        priority: 2 // Higher priority than album searches
+      }
+    );
     const artists = mbArtistSearchResult["artists"] ?? [];
 
     return artists.map((a) => a.name).sort(
