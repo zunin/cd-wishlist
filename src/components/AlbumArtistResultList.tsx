@@ -56,9 +56,10 @@ const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = ({ musicBrainz }) => {
       )}
       <img
         style={{ 
-          maxHeight: "250px", 
+          maxHeight: "250px",
           maxWidth: "250px",
-          display: isLoading ? "none" : "block"
+          opacity: isLoading ? 0 : 1,
+          transition: "opacity 0.3s ease-in-out"
         }}
         src={imageUrl}
         alt={`Cover art for ${musicBrainz.albumTitle} by ${musicBrainz.artist}`}
