@@ -70,7 +70,7 @@ export function extractYear(dateString: string): number | undefined {
   }
 
   // Try other common formats with year at start
-  const yearStartMatch = trimmed.match(/^(\d{4})[\/\-\.]/);
+  const yearStartMatch = trimmed.match(/^(\d{4})[/\-.]/);
   if (yearStartMatch) {
     const year = parseInt(yearStartMatch[1], 10);
     if (year >= 1900 && year <= 2100) {

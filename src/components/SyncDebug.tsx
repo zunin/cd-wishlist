@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { provider, yDoc } from "../store.ts";
 import { ROOT_MAP_NAME } from "redux-yjs-bindings";
 import { useAppSelector } from "../reduxhooks.ts";
+import { CacheDebug } from "./CacheDebug.tsx";
 
 interface PeerInfo {
   clientId: number;
@@ -208,6 +209,10 @@ export const SyncDebug: FC = () => {
         <section className="sync-debug__section">
           <h3>Wishlist Data</h3>
           <pre>{JSON.stringify(reduxState.wishlist ?? yjsState.wishlist, null, 2)}</pre>
+        </section>
+        <section className="sync-debug__section">
+          <h3>Cache Info</h3>
+          <CacheDebug />
         </section>
       </div>
     </div>

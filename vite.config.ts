@@ -19,6 +19,11 @@ const swPlugin = VitePWA({
     version: "1.0.0",
   },
   workbox: {
+    // Ensure immediate activation
+    skipWaiting: true,
+    clientsClaim: true,
+    // Cleanup old caches
+    cleanupOutdatedCaches: true,
     globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
     runtimeCaching: [
       {
@@ -26,7 +31,10 @@ const swPlugin = VitePWA({
         handler: "CacheFirst",
         options: {
           cacheName: "music-brainz",
-          expiration: undefined,
+          expiration: {
+            maxEntries: 1000,
+            maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+          },
           cacheableResponse: {
             statuses: [0, 200],
           },
@@ -37,7 +45,10 @@ const swPlugin = VitePWA({
         handler: "CacheFirst",
         options: {
           cacheName: "coverartarchive",
-          expiration: undefined,
+          expiration: {
+            maxEntries: 1000,
+            maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+          },
           cacheableResponse: {
             statuses: [0, 200],
           },
@@ -45,8 +56,13 @@ const swPlugin = VitePWA({
       },
       {
         urlPattern: /cds\.json/i,
-        handler: "NetworkFirst",
+        handler: "StaleWhileRevalidate",
         options: {
+          cacheName: "cds-data",
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+          },
           backgroundSync: {
             name: "cd6000",
             options: {
