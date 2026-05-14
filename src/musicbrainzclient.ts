@@ -5,6 +5,7 @@ import { type MusicbrainzMeta } from "./models/MusicbrainzMeta.ts";
 
 export class MusicBrainzClient {
   private mbApi: MusicBrainzApi;
+  private inFlightRequests = new Map<string, Promise<MusicbrainzMeta>>();
 
   constructor() {
     this.mbApi = new MusicBrainzApi({
@@ -17,6 +18,26 @@ export class MusicBrainzClient {
   }
 
   async getMusicBrainzHit(
+    releaseGroupId: string,
+  ): Promise<MusicbrainzMeta> {
+    // Check if there's already an in-flight request for this ID
+    if (this.inFlightRequests.has(releaseGroupId)) {
+      return this.inFlightRequests.get(releaseGroupId)!;
+    }
+
+    // Create the promise and store it
+    const promise = this.fetchMusicBrainzHit(releaseGroupId);
+    this.inFlightRequests.set(releaseGroupId, promise);
+
+    // Clean up when done
+    promise.finally(() => {
+      this.inFlightRequests.delete(releaseGroupId);
+    });
+
+    return promise;
+  }
+
+  private async fetchMusicBrainzHit(
     releaseGroupId: string,
   ): Promise<MusicbrainzMeta> {
     const searchResult = await this.mbApi.lookup("release-group", releaseGroupId, ["artist-credits"]);

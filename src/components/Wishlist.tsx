@@ -31,7 +31,9 @@ export const Wishlist: FC<
       
       setIsLoading(true);
       try {
-        const metaPromises = wishlist.map((item) =>
+        // Deduplicate wishlist IDs before fetching to avoid redundant API calls
+        const uniqueIds = [...new Map(wishlist.map(item => [item.id, item])).values()];
+        const metaPromises = uniqueIds.map((item) =>
           musicBrainzClient.getMusicBrainzHit(item.id)
         );
         const res = await Promise.all<MusicbrainzMeta>(metaPromises);
