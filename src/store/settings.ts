@@ -8,7 +8,6 @@ export interface SyncSettings {
   filterBcConns: boolean;
   iceServers: string;
   dataSources: string[];
-  localNetworkOnly: boolean;
 }
 
 const ADJECTIVES = [
@@ -47,7 +46,6 @@ export const DEFAULT_SETTINGS: SyncSettings = {
     "https://raw.githubusercontent.com/zunin/cd6000.dk-history/master/cds.json",
     "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/master/cds.json",
   ],
-  localNetworkOnly: true,
 };
 
 const STORAGE_KEY = "cdwishlist-sync-settings";

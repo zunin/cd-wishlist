@@ -210,19 +210,6 @@ export const SettingsPage: FC = () => {
         <span className="setting-hint">When enabled, tabs in the same browser share data via BroadcastChannel instead of WebRTC.</span>
       </div>
 
-      <div className="settings-group settings-group--checkbox">
-        <label htmlFor="localNetworkOnly">
-          <input
-            id="localNetworkOnly"
-            type="checkbox"
-            checked={settings.localNetworkOnly}
-            onChange={(e) => dispatch(updateSetting({ key: "localNetworkOnly", value: e.target.checked }))}
-          />
-          Local Network Only
-        </label>
-        <span className="setting-hint">When enabled, WebRTC connections are restricted to local network peers only (no TURN relay).</span>
-      </div>
-
       <div className="settings-group">
         <label>Data Sources</label>
         <div className="data-source-list">

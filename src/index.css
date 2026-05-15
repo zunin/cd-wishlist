@@ -493,6 +493,28 @@
   color: #ccc;
 }
 
+.sync-debug__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sync-debug__action-btn {
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sync-debug__action-btn:hover {
+  background: #2563eb;
+}
+
 .sync-debug__copy {
   padding: 0.5rem 1rem;
   background: #22c55e;
@@ -571,20 +593,27 @@
 .sync-debug__log {
   margin: 0;
   padding: 0.5rem;
-  background: #0a0a0a;
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 4px;
   font-family: monospace;
-  font-size: 0.7rem;
-  max-height: 100px;
+  font-size: 0.75rem;
+  color: #ccc;
+  max-height: 150px;
   overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .sync-debug__match {
   padding: 0.5rem;
-  background: #0a0a0a;
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 4px;
   font-family: monospace;
   color: #22c55e;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .sync-debug__section:not(:has(.sync-debug__match)) .sync-debug__match {
@@ -594,12 +623,16 @@
 .sync-debug__section pre {
   margin: 0;
   padding: 0.5rem;
-  background: #0a0a0a;
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 4px;
   font-family: monospace;
   font-size: 0.75rem;
+  color: #ccc;
   overflow-x: auto;
-  max-height: 200px;
+  max-height: 300px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .share-link {

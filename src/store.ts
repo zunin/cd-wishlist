@@ -47,12 +47,8 @@ function getIceServers(settings: SyncSettings): { urls: string }[] {
 
 function getIceConfig(settings: SyncSettings): RTCConfiguration {
   const iceServers = getIceServers(settings);
-  // When localNetworkOnly is enabled, restrict to local candidates only (no TURN relay)
-  const iceTransportPolicy = settings.localNetworkOnly 
-    ? 'local' as RTCIceTransportPolicy 
-    : 'all' as RTCIceTransportPolicy;
   return {
-    iceTransportPolicy,
+    iceTransportPolicy: 'all' as RTCIceTransportPolicy,
     iceServers,
   };
 }
@@ -67,7 +63,6 @@ function createProvider(settings: SyncSettings): WebrtcProvider {
     iceTransportPolicy: iceConfig.iceTransportPolicy,
     iceServerCount: iceServers.length,
     hasTurn,
-    localNetworkOnly: settings.localNetworkOnly 
   }));
   const provider = new WebrtcProvider(settings.roomName, yDoc, {
     password: settings.password || undefined,

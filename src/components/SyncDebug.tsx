@@ -22,7 +22,6 @@ interface DiagnosticPayload {
   settings: {
     roomName: string;
     signalingUrl: string;
-    localNetworkOnly: boolean;
     filterBcConns: boolean;
   };
   signalingConnected: boolean;
@@ -138,7 +137,6 @@ export const SyncDebug: FC = () => {
       settings: {
         roomName: settings.roomName,
         signalingUrl: settings.signalingUrl,
-        localNetworkOnly: settings.localNetworkOnly,
         filterBcConns: settings.filterBcConns,
       },
       signalingConnected,
@@ -155,17 +153,77 @@ export const SyncDebug: FC = () => {
     }
   }, [clientId, peers, awarenessStates, updateCount, reduxState, yjsState, settings, signalingConnected, connectionLog]);
 
+  const forceSync = useCallback(() => {
+    addLog('manual sync triggered');
+    
+    // Force Y.js to broadcast current state
+    const rootMap = yDoc.getMap(ROOT_MAP_NAME);
+    const currentData = rootMap.toJSON();
+    addLog(`broadcasting ${Object.keys(currentData).length} root keys`);
+    
+    // Trigger awareness update
+    provider.awareness.setLocalStateField('syncRequest', Date.now());
+    
+    // Force provider to reconnect if needed
+    if (!provider.connected) {
+      addLog('provider not connected, attempting reconnect...');
+      provider.connect();
+    } else {
+      addLog('provider already connected');
+    }
+    
+    // Log current sync state
+    addLog(`webrtc peers: ${peers.length}`);
+    addLog(`awareness clients: ${awarenessStates.length}`);
+    
+    // Check if we can see other peers
+    setTimeout(() => {
+      const states = Array.from(provider.awareness.getStates().entries());
+      addLog(`awareness check: ${states.length} clients (local: ${yDoc.clientID})`);
+      states.forEach(([id, state]) => {
+        if (id !== yDoc.clientID) {
+          addLog(`  remote peer ${id}: ${JSON.stringify(Object.keys(state))}`);
+        }
+      });
+    }, 1000);
+  }, [addLog, peers.length, awarenessStates.length]);
+
+  const reconnectSignaling = useCallback(() => {
+    addLog('manual reconnect triggered');
+    provider.disconnect();
+    setTimeout(() => {
+      provider.connect();
+      addLog('reconnect initiated');
+    }, 500);
+  }, [addLog]);
+
   return (
     <div className="sync-debug">
       <div className="sync-debug__header">
         <h2>Sync Debug</h2>
-        <button
-          type="button"
-          className={`sync-debug__copy ${copyStatus}`}
-          onClick={copyToClipboard}
-        >
-          {copyStatus === "success" ? "Copied!" : copyStatus === "error" ? "Failed" : "Copy Diagnostics"}
-        </button>
+        <div className="sync-debug__actions">
+          <button
+            type="button"
+            className="sync-debug__action-btn"
+            onClick={forceSync}
+          >
+            Force Sync
+          </button>
+          <button
+            type="button"
+            className="sync-debug__action-btn"
+            onClick={reconnectSignaling}
+          >
+            Reconnect
+          </button>
+          <button
+            type="button"
+            className={`sync-debug__copy ${copyStatus}`}
+            onClick={copyToClipboard}
+          >
+            {copyStatus === "success" ? "Copied!" : copyStatus === "error" ? "Failed" : "Copy Diagnostics"}
+          </button>
+        </div>
       </div>
       <div className="sync-debug__content">
         <section className="sync-debug__section">
