@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run -A npm:vite",
+    "dev": "deno run -A npm:vite --host 0.0.0.0",
     "typecheck": "deno check src/main.tsx",
     "build": "deno check src/main.tsx && deno run -A npm:vite build",
     "serve": "deno run build",
