@@ -1,24 +1,22 @@
 {
-  "tasks": {
-    "dev": "deno run -A npm:vite --host 0.0.0.0",
-    "typecheck": "deno check src/main.tsx",
-    "build": "deno check src/main.tsx && deno run -A npm:vite build",
-    "serve": "deno run build",
-    "signal": "deno run --allow-net --allow-env signaling-server.ts",
-    "lint": "deno run -A npm:eslint ."
-  },
-  "compilerOptions": {
-    "types": [
-        "react",
-        "react-dom",
-        "@types/react"
-    ],
-    "lib": [
-        "dom",
-        "dom.iterable",
-        "deno.ns"
-    ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "react"
-  }
+    "tasks": {
+        "dev": "deno run -A npm:vite --host 0.0.0.0",
+        "typecheck": "deno check src/main.tsx",
+        "build": "deno run -A npm:vite build",
+        "serve": "deno run build",
+        "signal": "deno run --allow-net --allow-env signaling-server.ts",
+        "lint": "deno run -A npm:eslint ."
+    },
+    "compilerOptions": {
+        "types": ["react", "react-dom", "@types/react"],
+        "lib": ["dom", "dom.iterable", "deno.ns"],
+        "jsx": "react-jsx",
+        "jsxImportSource": "react"
+    },
+    "imports": {
+        "react": "npm:react@19.1.1",
+        "react-dom": "npm:react-dom@19.1.1",
+        "@types/react": "npm:@types/react@19.1.9",
+        "@types/react-dom": "npm:@types/react-dom@19.1.7"
+    }
 }

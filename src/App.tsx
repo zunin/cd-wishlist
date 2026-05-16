@@ -1,3 +1,5 @@
+// CSS custom properties augmentation for React.CSSProperties
+/// <reference types="./css-properties.d.ts" />
 import {
     // @ts-types="react"
     FC,

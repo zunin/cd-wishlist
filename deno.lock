@@ -4098,6 +4098,12 @@
     "https://raw.githubusercontent.com/zunin/rytmeboxen.dk-history/main/cds.json": "00d6a3a1953538ddac762b7772436c7a799c5280bbea797875de3490a7c32000"
   },
   "workspace": {
+    "dependencies": [
+      "npm:@types/react-dom@19.1.7",
+      "npm:@types/react@19.1.9",
+      "npm:react-dom@19.1.1",
+      "npm:react@19.1.1"
+    ],
     "packageJson": {
       "dependencies": [
         "npm:@deno/vite-plugin@^1.0.5",
