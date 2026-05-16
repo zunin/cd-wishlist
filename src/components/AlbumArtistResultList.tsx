@@ -57,23 +57,25 @@ const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = memo(
         }
 
         return (
-            <div className="frame" style={{ "--n": 1, "--d": 1 }}>
+            <div style={{ position: "relative" }}>
+                <div className="frame" style={{ "--n": 1, "--d": 1 }}>
+                    <img
+                        style={{
+                            opacity: isLoading ? 0 : 1,
+                            transition: "opacity 0.3s ease-in-out",
+                        }}
+                        src={imageUrl}
+                        alt={`Cover art for ${musicBrainz.albumTitle} by ${musicBrainz.artist}`}
+                        loading="lazy"
+                        onError={handleError}
+                        onLoad={handleLoad}
+                    />
+                </div>
                 {isLoading && (
                     <div className="cover-art-loading">
                         <div className="skeleton-image" />
                     </div>
                 )}
-                <img
-                    style={{
-                        opacity: isLoading ? 0 : 1,
-                        transition: "opacity 0.3s ease-in-out",
-                    }}
-                    src={imageUrl}
-                    alt={`Cover art for ${musicBrainz.albumTitle} by ${musicBrainz.artist}`}
-                    loading="lazy"
-                    onError={handleError}
-                    onLoad={handleLoad}
-                />
             </div>
         );
     },
