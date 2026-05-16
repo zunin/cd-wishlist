@@ -1,5 +1,5 @@
 import {
-    FC, // @ts-types="react"
+    type FC, // @ts-types="react"
     useEffect,
     useMemo,
     useState,
@@ -23,6 +23,9 @@ export const AlbumArtistSearch: FC<{
 
     const [artistQuery, setArtistQuery] = useState("");
     const [albumQuery, setAlbumQuery] = useState("");
+    const [artistSuggestions, setArtistSuggestions] = useState<string[]>([]);
+    const [showArtistSuggestions, setShowArtistSuggestions] = useState(false);
+    const [justSelectedArtist, setJustSelectedArtist] = useState(false);
     const [searchHits, setSearchHits] = useState([] as MusicbrainzMeta[]);
     const [albumARtistResultList, setAlbumARtistResultList] = useState(
         [] as Array<{
@@ -53,6 +56,29 @@ export const AlbumArtistSearch: FC<{
         };
     }, [artistQuery, albumQuery, musicBrainzClient]);
 
+    // Artist autocomplete effect
+    useEffect(() => {
+        if (!artistQuery || artistQuery.length < 2) {
+            setArtistSuggestions([]);
+            return;
+        }
+
+        if (justSelectedArtist) {
+            setJustSelectedArtist(false);
+            return;
+        }
+
+        const handler = setTimeout(async () => {
+            const artists = await musicBrainzClient.getArtists(artistQuery);
+            setArtistSuggestions(artists.map((a) => a.name).slice(0, 8));
+            setShowArtistSuggestions(true);
+        }, 300);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [artistQuery, musicBrainzClient, justSelectedArtist]);
+
     useEffect(() => {
         setAlbumARtistResultList(
             searchHits.map((hit: MusicbrainzMeta) => {
@@ -74,11 +100,61 @@ export const AlbumArtistSearch: FC<{
             <div className="switcher" style={{ "--switcher-target": "16rem" }}>
                 <div className="stack" style={{ "--space": "0.25rem" }}>
                     <label htmlFor="artist">Artist:</label>
-                    <input
-                        type="text"
-                        name="artist"
-                        onChange={(e) => setArtistQuery(e.target.value)}
-                    />
+                    <div style={{ position: "relative" }}>
+                        <input
+                            type="text"
+                            name="artist"
+                            value={artistQuery}
+                            onChange={(e) => setArtistQuery(e.target.value)}
+                            onFocus={() => setShowArtistSuggestions(true)}
+                            onBlur={() =>
+                                setTimeout(
+                                    () => setShowArtistSuggestions(false),
+                                    200,
+                                )
+                            }
+                        />
+                        {showArtistSuggestions &&
+                            artistSuggestions.length > 0 && (
+                                <ul
+                                    className="suggestions-list"
+                                    style={{
+                                        position: "absolute",
+                                        top: "100%",
+                                        left: 0,
+                                        right: 0,
+                                        background: "var(--col-bg)",
+                                        border: "1px solid var(--col-border)",
+                                        borderRadius: "var(--r-2)",
+                                        margin: 0,
+                                        padding: 0,
+                                        listStyle: "none",
+                                        zIndex: 10,
+                                        maxHeight: "200px",
+                                        overflowY: "auto",
+                                    }}
+                                >
+                                    {artistSuggestions.map((name, i) => (
+                                        <li
+                                            key={i}
+                                            style={{
+                                                padding:
+                                                    "var(--s-1) var(--s-2)",
+                                                cursor: "pointer",
+                                            }}
+                                            onMouseDown={() => {
+                                                setJustSelectedArtist(true);
+                                                setArtistQuery(name);
+                                                setShowArtistSuggestions(false);
+                                                setArtistSuggestions([]);
+                                            }}
+                                        >
+                                            {name}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                    </div>
                 </div>
                 <div className="stack" style={{ "--space": "0.25rem" }}>
                     <label htmlFor="albumtitle">Album:</label>

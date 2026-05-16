@@ -373,7 +373,7 @@ export class MusicBrainzClient {
         return [];
     }
 
-    private async getArtists(cdArtist: string): Promise<IArtistMatch[]> {
+    async getArtists(cdArtist: string): Promise<IArtistMatch[]> {
         // Use queue for search to handle rate limiting
         const mbArtistSearchResult = await this.queue.enqueue(
             () =>
