@@ -35,17 +35,29 @@ export const AlbumArtistSearch: FC<{
 
     const [musicBrainzClient] = useState(new MusicBrainzClient());
 
+    // Detect datalist support for mobile fallback
+    const [datalistSupported, setDatalistSupported] = useState(true);
+    useEffect(() => {
+        const input = document.createElement("input");
+        const supported =
+            "list" in input &&
+            !!(HTMLInputElement.prototype as unknown as { list: unknown }).list;
+        setDatalistSupported(supported);
+    }, []);
+
     useEffect(() => {
         // Set a timeout to update debounced value after 500ms
         const handler = setTimeout(async () => {
-            if (!!artistQuery || !!albumQuery) {
-                setSearchHits(
-                    (await musicBrainzClient.getMusicBrainzHits(
-                        artistQuery,
-                        albumQuery,
-                    )) ?? [],
-                );
+            if (!artistQuery && !albumQuery) {
+                setSearchHits([]);
+                return;
             }
+            setSearchHits(
+                (await musicBrainzClient.getMusicBrainzHits(
+                    artistQuery,
+                    albumQuery,
+                )) ?? [],
+            );
         }, 1000);
 
         // Cleanup the timeout if `query` changes before 500ms
@@ -102,8 +114,40 @@ export const AlbumArtistSearch: FC<{
                             list="artist-suggestions"
                             value={artistQuery}
                             onChange={(e) => setArtistQuery(e.target.value)}
-                            style={{ touchAction: "manipulation" }}
+                            style={{
+                                touchAction: "manipulation",
+                                borderTopRightRadius: datalistSupported
+                                    ? "var(--r-2)"
+                                    : "0",
+                                borderBottomRightRadius: datalistSupported
+                                    ? "var(--r-2)"
+                                    : "0",
+                            }}
                         />
+                        {!datalistSupported && (
+                            <select
+                                value={artistQuery}
+                                onChange={(e) => {
+                                    setArtistQuery(e.target.value);
+                                }}
+                                style={{
+                                    touchAction: "manipulation",
+                                    borderTopLeftRadius: "0",
+                                    borderBottomLeftRadius: "0",
+                                }}
+                            >
+                                <option value="">
+                                    {artistSuggestions.length > 0
+                                        ? "Pick suggestion"
+                                        : "Type to search"}
+                                </option>
+                                {artistSuggestions.map((name) => (
+                                    <option key={name} value={name}>
+                                        {name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                         <datalist id="artist-suggestions">
                             {artistSuggestions.map((name) => (
                                 <option key={name} value={name} />
