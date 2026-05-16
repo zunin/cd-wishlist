@@ -24,8 +24,6 @@ export const AlbumArtistSearch: FC<{
     const [artistQuery, setArtistQuery] = useState("");
     const [albumQuery, setAlbumQuery] = useState("");
     const [artistSuggestions, setArtistSuggestions] = useState<string[]>([]);
-    const [showArtistSuggestions, setShowArtistSuggestions] = useState(false);
-    const [justSelectedArtist, setJustSelectedArtist] = useState(false);
     const [searchHits, setSearchHits] = useState([] as MusicbrainzMeta[]);
     const [albumARtistResultList, setAlbumARtistResultList] = useState(
         [] as Array<{
@@ -63,21 +61,15 @@ export const AlbumArtistSearch: FC<{
             return;
         }
 
-        if (justSelectedArtist) {
-            setJustSelectedArtist(false);
-            return;
-        }
-
         const handler = setTimeout(async () => {
             const artists = await musicBrainzClient.getArtists(artistQuery);
             setArtistSuggestions(artists.map((a) => a.name).slice(0, 8));
-            setShowArtistSuggestions(true);
         }, 300);
 
         return () => {
             clearTimeout(handler);
         };
-    }, [artistQuery, musicBrainzClient, justSelectedArtist]);
+    }, [artistQuery, musicBrainzClient]);
 
     useEffect(() => {
         setAlbumARtistResultList(
@@ -100,60 +92,23 @@ export const AlbumArtistSearch: FC<{
             <div className="switcher" style={{ "--switcher-target": "16rem" }}>
                 <div className="stack" style={{ "--space": "0.25rem" }}>
                     <label htmlFor="artist">Artist:</label>
-                    <div style={{ position: "relative" }}>
+                    <div
+                        className="switcher"
+                        style={{ "--switcher-target": "16rem" }}
+                    >
                         <input
                             type="text"
                             name="artist"
+                            list="artist-suggestions"
                             value={artistQuery}
                             onChange={(e) => setArtistQuery(e.target.value)}
-                            onFocus={() => setShowArtistSuggestions(true)}
-                            onBlur={() =>
-                                setTimeout(
-                                    () => setShowArtistSuggestions(false),
-                                    200,
-                                )
-                            }
+                            style={{ touchAction: "manipulation" }}
                         />
-                        {showArtistSuggestions &&
-                            artistSuggestions.length > 0 && (
-                                <ul
-                                    className="suggestions-list"
-                                    style={{
-                                        position: "absolute",
-                                        top: "100%",
-                                        left: 0,
-                                        right: 0,
-                                        background: "var(--col-bg)",
-                                        border: "1px solid var(--col-border)",
-                                        borderRadius: "var(--r-2)",
-                                        margin: 0,
-                                        padding: 0,
-                                        listStyle: "none",
-                                        zIndex: 10,
-                                        maxHeight: "200px",
-                                        overflowY: "auto",
-                                    }}
-                                >
-                                    {artistSuggestions.map((name, i) => (
-                                        <li
-                                            key={i}
-                                            style={{
-                                                padding:
-                                                    "var(--s-1) var(--s-2)",
-                                                cursor: "pointer",
-                                            }}
-                                            onMouseDown={() => {
-                                                setJustSelectedArtist(true);
-                                                setArtistQuery(name);
-                                                setShowArtistSuggestions(false);
-                                                setArtistSuggestions([]);
-                                            }}
-                                        >
-                                            {name}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                        <datalist id="artist-suggestions">
+                            {artistSuggestions.map((name) => (
+                                <option key={name} value={name} />
+                            ))}
+                        </datalist>
                     </div>
                 </div>
                 <div className="stack" style={{ "--space": "0.25rem" }}>
