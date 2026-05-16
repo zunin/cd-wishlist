@@ -36,13 +36,13 @@ export const AlbumArtistSearch: FC<{
     const [musicBrainzClient] = useState(new MusicBrainzClient());
 
     // Detect datalist support for mobile fallback
+    // Firefox Android doesn't support datalist, other browsers do
     const [datalistSupported, setDatalistSupported] = useState(true);
     useEffect(() => {
-        const input = document.createElement("input");
-        const supported =
-            "list" in input &&
-            !!(HTMLInputElement.prototype as unknown as { list: unknown }).list;
-        setDatalistSupported(supported);
+        const isFirefoxAndroid =
+            navigator.userAgent.includes("Firefox") &&
+            /Android/.test(navigator.userAgent);
+        setDatalistSupported(!isFirefoxAndroid);
     }, []);
 
     useEffect(() => {
