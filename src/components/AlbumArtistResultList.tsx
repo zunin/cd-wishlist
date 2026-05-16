@@ -31,7 +31,10 @@ const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = memo(
 
         if (hasError) {
             return (
-                <div className="cover-art-error">
+                <div
+                    className="cover-art-error stack"
+                    style={{ "--space": "var(--s-1)" }}
+                >
                     <div className="music-note-icon">
                         <svg
                             viewBox="0 0 24 24"
@@ -54,7 +57,7 @@ const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = memo(
         }
 
         return (
-            <div className="cover-art-container">
+            <div className="frame" style={{ "--n": 1, "--d": 1 }}>
                 {isLoading && (
                     <div className="cover-art-loading">
                         <div className="skeleton-image" />
@@ -62,8 +65,6 @@ const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = memo(
                 )}
                 <img
                     style={{
-                        maxHeight: "250px",
-                        maxWidth: "250px",
                         opacity: isLoading ? 0 : 1,
                         transition: "opacity 0.3s ease-in-out",
                     }}
@@ -78,80 +79,64 @@ const CoverArt: FC<{ musicBrainz: MusicbrainzMeta }> = memo(
     },
 );
 
-const Header: FC<{ musicBrainz: MusicbrainzMeta }> = memo(({ musicBrainz }) => (
-    <div className="stack">
-        <h2>{musicBrainz.artist}</h2>
-        <p>{musicBrainz.albumTitle}</p>
-    </div>
-));
-
-const Centered: FC<{ musicBrainz: MusicbrainzMeta }> = memo(
-    ({ musicBrainz }) => <CoverArt musicBrainz={musicBrainz} />,
-);
-
-const Footer: FC<{
-    musicBrainz: MusicbrainzMeta;
-    available: Release[];
-    isInWishlist: boolean;
-}> = memo(function ({ musicBrainz, available, isInWishlist }) {
-    const dispatch = useAppDispatch();
-
-    return (
-        <div className="stack">
-            {available.length !== 0
-                ? available.map((record) => {
-                      return (
-                          <p key={record.origin}>
-                              {record.price} at{" "}
-                              <a href={record.origin}>
-                                  {URL.parse(record.origin)?.host}
-                              </a>
-                          </p>
-                      );
-                  })
-                : undefined}
-            {isInWishlist ? (
-                <button
-                    type="button"
-                    onClick={() =>
-                        dispatch(
-                            removeItem({ id: musicBrainz.releaseGroupId! }),
-                        )
-                    }
-                >
-                    Remove from wishlist
-                </button>
-            ) : (
-                <button
-                    type="button"
-                    onClick={() =>
-                        dispatch(addItem({ id: musicBrainz.releaseGroupId! }))
-                    }
-                >
-                    Add to wishlist
-                </button>
-            )}
-        </div>
-    );
-});
-
-const Cover: FC<{
+const CardContent: FC<{
     result: {
         musicBrainz: MusicbrainzMeta;
         available: Release[];
         isInWishlist: boolean;
     };
-}> = memo(({ result: { available, musicBrainz, isInWishlist } }) => (
-    <div className="cover" style={{ height: "100%" }}>
-        <Header musicBrainz={musicBrainz}></Header>
-        <Centered musicBrainz={musicBrainz}></Centered>
-        <Footer
-            musicBrainz={musicBrainz}
-            available={available}
-            isInWishlist={isInWishlist}
-        ></Footer>
-    </div>
-));
+}> = memo(function ({ result: { available, musicBrainz, isInWishlist } }) {
+    const dispatch = useAppDispatch();
+
+    return (
+        <div className="stack" style={{ "--space": "var(--s-1)" }}>
+            <div className="stack" style={{ "--space": "0" }}>
+                <h2>{musicBrainz.artist}</h2>
+                <p>{musicBrainz.albumTitle}</p>
+            </div>
+            <CoverArt musicBrainz={musicBrainz} />
+            <div className="stack" style={{ "--space": "var(--s-2)" }}>
+                {available.length !== 0
+                    ? available.map((record) => {
+                          return (
+                              <p key={record.origin}>
+                                  {record.price} at{" "}
+                                  <a href={record.origin}>
+                                      {URL.parse(record.origin)?.host}
+                                  </a>
+                              </p>
+                          );
+                      })
+                    : undefined}
+                {isInWishlist ? (
+                    <button
+                        type="button"
+                        className="btn btn--danger"
+                        onClick={() =>
+                            dispatch(
+                                removeItem({ id: musicBrainz.releaseGroupId! }),
+                            )
+                        }
+                    >
+                        Remove from wishlist
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        className="btn btn--primary"
+                        onClick={() =>
+                            dispatch(
+                                addItem({ id: musicBrainz.releaseGroupId! }),
+                            )
+                        }
+                    >
+                        Add to wishlist
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+});
 
 const AlbumArtistResult: FC<{
     result: {
@@ -161,26 +146,21 @@ const AlbumArtistResult: FC<{
     };
 }> = memo(({ result: { musicBrainz, available, isInWishlist } }) => {
     return (
-        <div
-            className="box invert"
-            key={musicBrainz.releaseGroupId}
-            style={{ maxWidth: "300px", padding: "1em" }}
-        >
-            <Cover result={{ musicBrainz, available, isInWishlist }}></Cover>
+        <div className="box invert" key={musicBrainz.releaseGroupId}>
+            <CardContent
+                result={{ musicBrainz, available, isInWishlist }}
+            ></CardContent>
         </div>
     );
 });
 const SkeletonCard: FC = memo(() => (
-    <div
-        className="box invert skeleton-card"
-        style={{ maxWidth: "300px", padding: "1em" }}
-    >
-        <div className="skeleton-header">
-            <div className="skeleton-text skeleton-title"></div>
-            <div className="skeleton-text skeleton-subtitle"></div>
-        </div>
-        <div className="skeleton-image"></div>
-        <div className="skeleton-footer">
+    <div className="box invert skeleton-card">
+        <div className="stack" style={{ "--space": "var(--s-1)" }}>
+            <div className="stack" style={{ "--space": "var(--s-2)" }}>
+                <div className="skeleton-text skeleton-title"></div>
+                <div className="skeleton-text skeleton-subtitle"></div>
+            </div>
+            <div className="skeleton-image"></div>
             <div className="skeleton-text skeleton-button"></div>
         </div>
     </div>
@@ -199,7 +179,7 @@ export const AlbumArtistResultList: FC<{
 
     if (isLoading) {
         return (
-            <div className="grid">
+            <div className="grid" style={{ "--space": "var(--s1)" }}>
                 {Array.from({ length: skeletonCount }, (_, i) => (
                     <SkeletonCard key={`skeleton-${i}`} />
                 ))}
@@ -208,7 +188,7 @@ export const AlbumArtistResultList: FC<{
     }
 
     return (
-        <div className="grid">
+        <div className="grid" style={{ "--space": "var(--s1)" }}>
             {results.map((meta) => {
                 return (
                     <AlbumArtistResult

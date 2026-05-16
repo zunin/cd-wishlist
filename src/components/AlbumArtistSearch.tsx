@@ -70,19 +70,25 @@ export const AlbumArtistSearch: FC<{
     }, [searchHits, releases, wishlistIdSet]);
 
     return (
-        <div>
-            <label htmlFor="artist">Artist:</label>
-            <input
-                type="text"
-                name="artist"
-                onChange={(e) => setArtistQuery(e.target.value)}
-            />
-            <label htmlFor="albumtitle">Album:</label>
-            <input
-                type="text"
-                name="albumTitle"
-                onChange={(e) => setAlbumQuery(e.target.value)}
-            />
+        <div className="stack" style={{ "--space": "var(--s-1)" }}>
+            <div className="switcher" style={{ "--switcher-target": "16rem" }}>
+                <div className="stack" style={{ "--space": "0.25rem" }}>
+                    <label htmlFor="artist">Artist:</label>
+                    <input
+                        type="text"
+                        name="artist"
+                        onChange={(e) => setArtistQuery(e.target.value)}
+                    />
+                </div>
+                <div className="stack" style={{ "--space": "0.25rem" }}>
+                    <label htmlFor="albumtitle">Album:</label>
+                    <input
+                        type="text"
+                        name="albumTitle"
+                        onChange={(e) => setAlbumQuery(e.target.value)}
+                    />
+                </div>
+            </div>
             <img
                 id="throbber"
                 className="htmx-indicator"
