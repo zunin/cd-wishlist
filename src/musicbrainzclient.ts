@@ -316,16 +316,12 @@ export class MusicBrainzClient {
         artist: IArtistMatch,
         year?: number,
     ): Promise<MusicbrainzMeta[]> {
-        let query = `artist:"${artist.name}" AND type:"Album" AND NOT type:"Live" and NOT type:"Compilation" and NOT type:"Demo" and NOT type:"Remix"`;
-
-        // Add year filter if provided
-        if (year) {
-            query += ` AND date:${year}`;
-        }
-
-        try {
-            // Use queue for search to handle rate limiting
-            const releaseGroupSearchResult = await this.queue.enqueue(
+        // Helper to execute a query and return sorted results
+        const executeQuery = async (
+            query: string,
+            prioritizeYear?: number,
+        ): Promise<MusicbrainzMeta[]> => {
+            const result = await this.queue.enqueue(
                 () => this.mbApi.search("release-group", { query }),
                 {
                     description: `Get albums for artist: "${artist.name}"`,
@@ -333,40 +329,82 @@ export class MusicBrainzClient {
                     priority: 1,
                 },
             );
-            let sortedReleaseGroupSearchResult =
-                releaseGroupSearchResult["release-groups"];
+            let releaseGroups = result["release-groups"];
 
-            // If we have a year, prioritize releases that match that year
+            if (prioritizeYear) {
+                releaseGroups = releaseGroups.sort((a, b) => {
+                    const aYear = a["first-release-date"]
+                        ? parseInt(a["first-release-date"].substring(0, 4))
+                        : 0;
+                    const bYear = b["first-release-date"]
+                        ? parseInt(b["first-release-date"].substring(0, 4))
+                        : 0;
+                    const aDiff = Math.abs(aYear - prioritizeYear);
+                    const bDiff = Math.abs(bYear - prioritizeYear);
+                    return aDiff - bDiff;
+                });
+            }
+
+            return releaseGroups.map(
+                (searchResult) =>
+                    ({
+                        releaseGroupId: searchResult.id,
+                        albumTitle: searchResult.title,
+                        artist:
+                            searchResult["artist-credit"]
+                                ?.map((x) => x.artist.name)
+                                .join(", ") ?? "Unknown Artist",
+                        type: searchResult["primary-type"],
+                    }) as MusicbrainzMeta,
+            );
+        };
+
+        try {
+            // Strategy 1: Strict albums (no Live/Compilation/Demo/Remix) + year if provided
+            let query = `artist:"${artist.name}" AND type:"Album" AND NOT type:"Live" AND NOT type:"Compilation" AND NOT type:"Demo" AND NOT type:"Remix"`;
             if (year) {
-                sortedReleaseGroupSearchResult =
-                    sortedReleaseGroupSearchResult.sort((a, b) => {
-                        const aYear = a["first-release-date"]
-                            ? parseInt(a["first-release-date"].substring(0, 4))
-                            : 0;
-                        const bYear = b["first-release-date"]
-                            ? parseInt(b["first-release-date"].substring(0, 4))
-                            : 0;
-                        const aDiff = Math.abs(aYear - year);
-                        const bDiff = Math.abs(bYear - year);
-                        return aDiff - bDiff;
-                    });
+                query += ` AND date:${year}`;
             }
+            let hits = await executeQuery(query, year);
 
-            const hits: MusicbrainzMeta[] = [];
-            for (const searchResult of sortedReleaseGroupSearchResult) {
-                hits.push({
-                    releaseGroupId: searchResult.id,
-                    albumTitle: searchResult.title,
-                    artist:
-                        searchResult["artist-credit"]
-                            ?.map((x) => x.artist.name)
-                            .join(", ") ?? "Unknown Artist",
-                    type: searchResult["primary-type"],
-                } as MusicbrainzMeta);
-            }
             if (hits.length > 0) {
                 return hits;
             }
+
+            // Strategy 2: If no results with year, try WITHOUT year but still strict types
+            if (year) {
+                console.log(
+                    `[MusicBrainz] No exact matches for "${artist.name}" in ${year}, trying without year constraint`,
+                );
+                const noYearQuery = `artist:"${artist.name}" AND type:"Album" AND NOT type:"Live" AND NOT type:"Compilation" AND NOT type:"Demo" AND NOT type:"Remix"`;
+                hits = await executeQuery(noYearQuery);
+
+                if (hits.length > 0) {
+                    return hits;
+                }
+            }
+
+            // Strategy 3: Try with Live/Compilation included but still with year if provided
+            if (year) {
+                console.log(
+                    `[MusicBrainz] No strict album matches for "${artist.name}" in ${year}, trying with Live/Compilation fallbacks`,
+                );
+                const fallbackWithYearQuery = `artist:"${artist.name}" AND type:"Album" AND NOT type:"Demo" AND NOT type:"Remix" AND date:${year}`;
+                hits = await executeQuery(fallbackWithYearQuery, year);
+
+                if (hits.length > 0) {
+                    return hits;
+                }
+            }
+
+            // Strategy 4: Full fallback - Live/Compilation, no year restriction
+            console.log(
+                `[MusicBrainz] No results for "${artist.name}", trying full discography with Live/Compilation`,
+            );
+            const fullFallbackQuery = `artist:"${artist.name}" AND type:"Album" AND NOT type:"Demo" AND NOT type:"Remix"`;
+            hits = await executeQuery(fullFallbackQuery, year);
+
+            return hits;
         } catch {
             /* Empty */
         }

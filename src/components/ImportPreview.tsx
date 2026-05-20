@@ -135,6 +135,11 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
     };
 
     if (status === "matching") {
+        const matchingCount = items.filter(
+            (i) => i.status === "pending" || i.status === "matching",
+        ).length;
+        const processedCount = items.length - matchingCount;
+
         return (
             <div className="import-preview">
                 <h3>Finding Matches...</h3>
@@ -148,6 +153,121 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
                         {progress?.total ?? 0} albums...
                     </p>
                 </div>
+
+                {processedCount > 0 && (
+                    <>
+                        <div className="import-stats cluster">
+                            <span className="stat stat--matched">
+                                ✓{" "}
+                                {
+                                    items.filter((i) => i.status === "matched")
+                                        .length
+                                }{" "}
+                                matched
+                            </span>
+                            <span className="stat stat--multiple">
+                                ?{" "}
+                                {
+                                    items.filter((i) => i.status === "multiple")
+                                        .length
+                                }{" "}
+                                need selection
+                            </span>
+                            <span className="stat stat--unmatched">
+                                ✗{" "}
+                                {
+                                    items.filter(
+                                        (i) => i.status === "unmatched",
+                                    ).length
+                                }{" "}
+                                unmatched
+                            </span>
+                        </div>
+
+                        <div className="import-table-container">
+                            <table className="import-table">
+                                <thead>
+                                    <tr>
+                                        <th className="col-status">Status</th>
+                                        <th className="col-artist">Artist</th>
+                                        <th className="col-album">Album</th>
+                                        <th className="col-match">
+                                            Matched Release
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            className={`status-${item.status}`}
+                                        >
+                                            <td className="col-status">
+                                                <span
+                                                    className={`status-icon ${getStatusClass(item.status)}`}
+                                                >
+                                                    {getStatusIcon(item.status)}
+                                                </span>
+                                            </td>
+                                            <td className="col-artist">
+                                                {item.artist || "—"}
+                                            </td>
+                                            <td className="col-album">
+                                                {item.album}
+                                            </td>
+                                            <td className="col-match">
+                                                {item.selectedMatch ? (
+                                                    <span className="match-info">
+                                                        {
+                                                            item.selectedMatch
+                                                                .artist
+                                                        }{" "}
+                                                        —{" "}
+                                                        {
+                                                            item.selectedMatch
+                                                                .albumTitle
+                                                        }
+                                                        {item.selectedMatch
+                                                            .type && (
+                                                            <span className="match-type">
+                                                                (
+                                                                {
+                                                                    item
+                                                                        .selectedMatch
+                                                                        .type
+                                                                }
+                                                                )
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                ) : item.status ===
+                                                  "matching" ? (
+                                                    <span className="matching-text">
+                                                        Searching...
+                                                    </span>
+                                                ) : item.status ===
+                                                  "unmatched" ? (
+                                                    <span className="no-match">
+                                                        No match found
+                                                    </span>
+                                                ) : item.matches.length > 0 ? (
+                                                    <span className="match-options">
+                                                        {item.matches.length}{" "}
+                                                        options
+                                                    </span>
+                                                ) : (
+                                                    <span className="pending-text">
+                                                        Pending...
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
             </div>
         );
     }
