@@ -1,15 +1,19 @@
 import { type IArtistMatch, MusicBrainzApi } from "musicbrainz-api";
 import { compareSimilarity } from "@std/text";
 import { type MusicbrainzMeta } from "./models/MusicbrainzMeta.ts";
-import {
-    MusicBrainzQueue,
-    type QueueStatus,
-} from "./utils/MusicBrainzQueue.ts";
 
+/**
+ * MusicBrainz client using Workbox for caching and retry
+ *
+ * All HTTP requests go through the Service Worker which handles:
+ * - CacheFirst caching for MusicBrainz API responses
+ * - BackgroundSync for offline/failed requests (survives browser close)
+ * - Automatic retry on 429/503 rate limits
+ *
+ * No custom queue needed - Workbox handles everything.
+ */
 export class MusicBrainzClient {
     private mbApi: MusicBrainzApi;
-    private inFlightRequests = new Map<string, Promise<MusicbrainzMeta>>();
-    private queue: MusicBrainzQueue;
 
     constructor() {
         this.mbApi = new MusicBrainzApi({
@@ -17,66 +21,32 @@ export class MusicBrainzClient {
             appVersion: "0.0.1",
             appContactInfo: "https://github.com/zunin/cd-wishlist",
         });
-
-        // Initialize queue with max 2 concurrent requests to respect rate limits
-        this.queue = new MusicBrainzQueue(2);
     }
 
     /**
-     * Get the queue instance for status monitoring
+     * Get a single release group from MusicBrainz
+     * Uses Workbox CacheFirst - cached responses returned instantly
+     * Failed requests are queued for BackgroundSync retry
      */
-    getQueue(): MusicBrainzQueue {
-        return this.queue;
-    }
+    async getMusicBrainzHit(releaseGroupId: string): Promise<MusicbrainzMeta> {
+        const url = `https://musicbrainz.org/ws/2/release-group/${releaseGroupId}?inc=artist-credits&fmt=json`;
 
-    /**
-     * Subscribe to queue status changes
-     */
-    onQueueStatusChange(callback: (status: QueueStatus) => void): () => void {
-        return this.queue.onStatusChange(callback);
-    }
-
-    getMusicBrainzHit(releaseGroupId: string): Promise<MusicbrainzMeta> {
-        // Check if there's already an in-flight request for this ID
-        if (this.inFlightRequests.has(releaseGroupId)) {
-            return this.inFlightRequests.get(releaseGroupId)!;
-        }
-
-        // Create the promise and store it
-        const promise = this.fetchMusicBrainzHit(releaseGroupId);
-        this.inFlightRequests.set(releaseGroupId, promise);
-
-        // Clean up when done
-        promise.finally(() => {
-            this.inFlightRequests.delete(releaseGroupId);
+        // This fetch goes through Workbox service worker
+        // - CacheFirst: returns cached response if available
+        // - BackgroundSync: queues failed requests for later retry
+        const response = await fetch(url, {
+            headers: {
+                "User-Agent":
+                    "cdwishlist/0.0.1 ( https://github.com/zunin/cd-wishlist )",
+            },
         });
 
-        return promise;
-    }
-
-    private async fetchMusicBrainzHit(
-        releaseGroupId: string,
-    ): Promise<MusicbrainzMeta> {
-        const url = `https://musicbrainz.org/ws/2/release-group/${releaseGroupId}?inc=artist-credits&fmt=json`;
-        const response = await this.queue.enqueue(
-            () =>
-                fetch(url, {
-                    headers: {
-                        "User-Agent":
-                            "cdwishlist/0.0.1 ( https://github.com/zunin/cd-wishlist )",
-                    },
-                }),
-            {
-                description: `Lookup: ${releaseGroupId}`,
-                maxRetries: 5,
-                priority: 0,
-            },
-        );
         if (!response.ok) {
             throw new Error(
                 `MusicBrainz API error: ${response.status} ${response.statusText}`,
             );
         }
+
         const searchResult = await response.json();
         return {
             releaseGroupId,
@@ -89,6 +59,10 @@ export class MusicBrainzClient {
         } as MusicbrainzMeta;
     }
 
+    /**
+     * Search for albums matching artist + album title
+     * Uses Workbox BackgroundSync - requests persist across browser close
+     */
     async getMusicBrainzHits(
         artist: string,
         albumTitle: string,
@@ -208,6 +182,10 @@ export class MusicBrainzClient {
         return variations;
     }
 
+    /**
+     * Search for release groups matching query
+     * Uses Workbox BackgroundSync - requests queued if offline/rate-limited
+     */
     private async searchReleaseGroup(
         albumTitle: string,
         artist: IArtistMatch,
@@ -248,15 +226,13 @@ export class MusicBrainzClient {
         }
 
         try {
-            // Use queue for search to handle rate limiting
-            const releaseGroupSearchResult = await this.queue.enqueue(
-                () => this.mbApi.search("release-group", { query }),
-                {
-                    description: `Search: "${albumTitle}" by "${artist.name}"`,
-                    maxRetries: 5,
-                    priority: 1,
-                },
+            // This fetch goes through Workbox service worker
+            // BackgroundSync queues failed requests
+            const releaseGroupSearchResult = await this.mbApi.search(
+                "release-group",
+                { query },
             );
+
             let sortedReleaseGroupSearchResult = releaseGroupSearchResult[
                 "release-groups"
             ].sort((a, b) => {
@@ -321,14 +297,8 @@ export class MusicBrainzClient {
             query: string,
             prioritizeYear?: number,
         ): Promise<MusicbrainzMeta[]> => {
-            const result = await this.queue.enqueue(
-                () => this.mbApi.search("release-group", { query }),
-                {
-                    description: `Get albums for artist: "${artist.name}"`,
-                    maxRetries: 5,
-                    priority: 1,
-                },
-            );
+            // This fetch goes through Workbox BackgroundSync
+            const result = await this.mbApi.search("release-group", { query });
             let releaseGroups = result["release-groups"];
 
             if (prioritizeYear) {
@@ -411,20 +381,16 @@ export class MusicBrainzClient {
         return [];
     }
 
+    /**
+     * Search for artists by name
+     * Uses Workbox BackgroundSync
+     */
     async getArtists(cdArtist: string): Promise<IArtistMatch[]> {
-        // Use queue for search to handle rate limiting
-        const mbArtistSearchResult = await this.queue.enqueue(
-            () =>
-                this.mbApi.search("artist", {
-                    query: cdArtist,
-                    limit: 20,
-                }),
-            {
-                description: `Search artist: "${cdArtist}"`,
-                maxRetries: 5,
-                priority: 2, // Higher priority than album searches
-            },
-        );
+        // This fetch goes through Workbox BackgroundSync
+        const mbArtistSearchResult = await this.mbApi.search("artist", {
+            query: cdArtist,
+            limit: 20,
+        });
         const artists = mbArtistSearchResult["artists"] ?? [];
 
         return artists
