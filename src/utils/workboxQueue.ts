@@ -48,43 +48,32 @@ export function getWorkboxRuntimeCaching(): Array<{
     return [
         {
             // MusicBrainz API - CacheFirst with BackgroundSync
-            // Retries indefinitely for rate limits, survives browser close
+            // Unlimited cache - no expiration limits
             urlPattern: /^https:\/\/musicbrainz\.org\/.*/i,
             handler: "CacheFirst",
             options: {
                 cacheName: "music-brainz",
-                expiration: {
-                    maxEntries: 1000,
-                    maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-                },
-                cacheableResponse: {
-                    statuses: [0, 200],
-                },
+                // No expiration limits - cache forever
                 backgroundSync: {
                     name: "musicbrainz-sync",
                     options: {
-                        maxRetentionTime: 60 * 60 * 24 * 7, // 1 week - requests survive 1 week
+                        maxRetentionTime: 60 * 60 * 24 * 7, // Failed requests survive 1 week
                     },
                 },
             },
         },
         {
             // Cover Art Archive - CacheFirst with BackgroundSync
+            // Unlimited cache - no expiration limits
             urlPattern: /^https:\/\/coverartarchive\.org\/.*/i,
             handler: "CacheFirst",
             options: {
                 cacheName: "coverartarchive",
-                expiration: {
-                    maxEntries: 1000,
-                    maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-                },
-                cacheableResponse: {
-                    statuses: [200],
-                },
+                // No expiration limits - cache forever
                 backgroundSync: {
                     name: "coverart-sync",
                     options: {
-                        maxRetentionTime: 60 * 60 * 24 * 7, // 1 week
+                        maxRetentionTime: 60 * 60 * 24 * 7, // Failed requests survive 1 week
                     },
                 },
             },
@@ -134,7 +123,7 @@ export async function initializeWorkboxRoutes(
     const { RetryPlugin } = params;
     const { BackgroundSyncPlugin } = params;
 
-    // MusicBrainz API - CacheFirst with retry
+    // MusicBrainz API - CacheFirst with BackgroundSync (no expiration limits)
     registerRoute(
         /^https:\/\/musicbrainz\.org\/.*/i,
         new CacheFirst({
@@ -149,16 +138,13 @@ export async function initializeWorkboxRoutes(
                 new CacheableResponsePlugin({
                     statuses: [0, 200],
                 }),
-                new ExpirationPlugin({
-                    maxEntries: 1000,
-                    maxAgeSeconds: 60 * 60 * 24 * 365,
-                }),
+                // No ExpirationPlugin - cache indefinitely
             ],
         }),
         "GET",
     );
 
-    // Cover Art Archive
+    // Cover Art Archive - CacheFirst with BackgroundSync (no expiration limits)
     registerRoute(
         /^https:\/\/coverartarchive\.org\/.*/i,
         new CacheFirst({
@@ -172,10 +158,7 @@ export async function initializeWorkboxRoutes(
                 new CacheableResponsePlugin({
                     statuses: [200],
                 }),
-                new ExpirationPlugin({
-                    maxEntries: 1000,
-                    maxAgeSeconds: 60 * 60 * 24 * 365,
-                }),
+                // No ExpirationPlugin - cache indefinitely
             ],
         }),
         "GET",
