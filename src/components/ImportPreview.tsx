@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { useAppSelector, useAppDispatch } from "../reduxhooks.ts";
 import {
     selectMatch,
@@ -11,6 +11,155 @@ import {
 } from "../store/importQueue.ts";
 import { addItem } from "../store/wishlist.ts";
 import type { MusicbrainzMeta } from "../models/MusicbrainzMeta.ts";
+
+const MATCH_STATUS_CONFIG: Record<
+    MatchStatus,
+    { icon: string; className: string }
+> = {
+    matched: { icon: "✓", className: "status-matched" },
+    unmatched: { icon: "✗", className: "status-unmatched" },
+    multiple: { icon: "?", className: "status-multiple" },
+    matching: { icon: "...", className: "status-matching" },
+    pending: { icon: "○", className: "status-pending" },
+    error: { icon: "!", className: "status-error" },
+};
+
+const getStatusIcon = (status: MatchStatus) =>
+    MATCH_STATUS_CONFIG[status]?.icon ?? "?";
+const getStatusClass = (status: MatchStatus) =>
+    MATCH_STATUS_CONFIG[status]?.className ?? "";
+
+interface ImportStatsProps {
+    matchedCount: number;
+    unmatchedCount: number;
+    multipleCount: number;
+}
+
+const ImportStats: FC<ImportStatsProps> = ({
+    matchedCount,
+    unmatchedCount,
+    multipleCount,
+}) => (
+    <div className="import-stats cluster">
+        <span className="stat stat--matched">✓ {matchedCount} matched</span>
+        {unmatchedCount > 0 && (
+            <span className="stat stat--unmatched">
+                ✗ {unmatchedCount} unmatched
+            </span>
+        )}
+        {multipleCount > 0 && (
+            <span className="stat stat--multiple">
+                ? {multipleCount} need selection
+            </span>
+        )}
+    </div>
+);
+
+interface ImportTableRowProps {
+    item: ImportItem;
+    isSelected: boolean;
+    onToggleSelect: (itemId: string) => void;
+    onManualSelect: (item: ImportItem, match: MusicbrainzMeta) => void;
+    showCheckbox: boolean;
+}
+
+const ImportTableRow: FC<ImportTableRowProps> = ({
+    item,
+    isSelected,
+    onToggleSelect,
+    onManualSelect,
+    showCheckbox,
+}) => {
+    const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        const match = item.matches.find(
+            (m) => m.releaseGroupId === e.target.value,
+        );
+        if (match) {
+            onManualSelect(item, match);
+        }
+    };
+
+    return (
+        <tr
+            key={item.id}
+            className={`status-${item.status} ${isSelected ? "selected" : ""}`}
+        >
+            {showCheckbox && (
+                <td className="col-select">
+                    <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(item.id)}
+                        disabled={
+                            item.status !== "matched" || !item.selectedMatch
+                        }
+                    />
+                </td>
+            )}
+            <td className="col-status">
+                <span className={`status-icon ${getStatusClass(item.status)}`}>
+                    {getStatusIcon(item.status)}
+                </span>
+            </td>
+            <td className="col-artist">{item.artist || "—"}</td>
+            <td className="col-album">{item.album}</td>
+            <td className="col-match">
+                {item.selectedMatch ? (
+                    <span className="match-info">
+                        {item.selectedMatch.artist} —{" "}
+                        {item.selectedMatch.albumTitle}
+                        {item.selectedMatch.type && (
+                            <span className="match-type">
+                                ({item.selectedMatch.type})
+                            </span>
+                        )}
+                    </span>
+                ) : item.status === "matching" ? (
+                    <span className="matching-text">Searching...</span>
+                ) : item.status === "unmatched" ? (
+                    <span className="no-match">No match found</span>
+                ) : item.matches.length > 0 ? (
+                    <span className="match-options">
+                        {item.matches.length} options
+                    </span>
+                ) : (
+                    <span className="pending-text">Pending...</span>
+                )}
+            </td>
+            <td className="col-action">
+                {item.status === "multiple" && item.matches.length > 0 && (
+                    <select
+                        value={item.selectedMatch?.releaseGroupId || ""}
+                        onChange={handleSelectChange}
+                    >
+                        <option value="">Select match...</option>
+                        {item.matches.map((match) => (
+                            <option
+                                key={match.releaseGroupId}
+                                value={match.releaseGroupId}
+                            >
+                                {match.artist} — {match.albumTitle}
+                            </option>
+                        ))}
+                    </select>
+                )}
+                {item.status === "unmatched" && (
+                    <button
+                        type="button"
+                        className="btn btn--small"
+                        onClick={() => {
+                            alert(
+                                "Manual search not implemented yet. You can try editing the import data and re-importing.",
+                            );
+                        }}
+                    >
+                        Search
+                    </button>
+                )}
+            </td>
+        </tr>
+    );
+};
 
 interface ImportPreviewProps {
     onBack: () => void;
@@ -96,44 +245,6 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
         onBack();
     };
 
-    const getStatusIcon = (status: MatchStatus) => {
-        switch (status) {
-            case "matched":
-                return "✓";
-            case "unmatched":
-                return "✗";
-            case "multiple":
-                return "?";
-            case "matching":
-                return "...";
-            case "pending":
-                return "○";
-            case "error":
-                return "!";
-            default:
-                return "?";
-        }
-    };
-
-    const getStatusClass = (status: MatchStatus) => {
-        switch (status) {
-            case "matched":
-                return "status-matched";
-            case "unmatched":
-                return "status-unmatched";
-            case "multiple":
-                return "status-multiple";
-            case "matching":
-                return "status-matching";
-            case "pending":
-                return "status-pending";
-            case "error":
-                return "status-error";
-            default:
-                return "";
-        }
-    };
-
     if (status === "matching") {
         const matchingCount = items.filter(
             (i) => i.status === "pending" || i.status === "matching",
@@ -156,33 +267,20 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
 
                 {processedCount > 0 && (
                     <>
-                        <div className="import-stats cluster">
-                            <span className="stat stat--matched">
-                                ✓{" "}
-                                {
-                                    items.filter((i) => i.status === "matched")
-                                        .length
-                                }{" "}
-                                matched
-                            </span>
-                            <span className="stat stat--multiple">
-                                ?{" "}
-                                {
-                                    items.filter((i) => i.status === "multiple")
-                                        .length
-                                }{" "}
-                                need selection
-                            </span>
-                            <span className="stat stat--unmatched">
-                                ✗{" "}
-                                {
-                                    items.filter(
-                                        (i) => i.status === "unmatched",
-                                    ).length
-                                }{" "}
-                                unmatched
-                            </span>
-                        </div>
+                        <ImportStats
+                            matchedCount={
+                                items.filter((i) => i.status === "matched")
+                                    .length
+                            }
+                            multipleCount={
+                                items.filter((i) => i.status === "multiple")
+                                    .length
+                            }
+                            unmatchedCount={
+                                items.filter((i) => i.status === "unmatched")
+                                    .length
+                            }
+                        />
 
                         <div className="import-table-container">
                             <table className="import-table">
@@ -194,74 +292,19 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
                                         <th className="col-match">
                                             Matched Release
                                         </th>
+                                        <th className="col-action">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {items.map((item) => (
-                                        <tr
+                                        <ImportTableRow
                                             key={item.id}
-                                            className={`status-${item.status}`}
-                                        >
-                                            <td className="col-status">
-                                                <span
-                                                    className={`status-icon ${getStatusClass(item.status)}`}
-                                                >
-                                                    {getStatusIcon(item.status)}
-                                                </span>
-                                            </td>
-                                            <td className="col-artist">
-                                                {item.artist || "—"}
-                                            </td>
-                                            <td className="col-album">
-                                                {item.album}
-                                            </td>
-                                            <td className="col-match">
-                                                {item.selectedMatch ? (
-                                                    <span className="match-info">
-                                                        {
-                                                            item.selectedMatch
-                                                                .artist
-                                                        }{" "}
-                                                        —{" "}
-                                                        {
-                                                            item.selectedMatch
-                                                                .albumTitle
-                                                        }
-                                                        {item.selectedMatch
-                                                            .type && (
-                                                            <span className="match-type">
-                                                                (
-                                                                {
-                                                                    item
-                                                                        .selectedMatch
-                                                                        .type
-                                                                }
-                                                                )
-                                                            </span>
-                                                        )}
-                                                    </span>
-                                                ) : item.status ===
-                                                  "matching" ? (
-                                                    <span className="matching-text">
-                                                        Searching...
-                                                    </span>
-                                                ) : item.status ===
-                                                  "unmatched" ? (
-                                                    <span className="no-match">
-                                                        No match found
-                                                    </span>
-                                                ) : item.matches.length > 0 ? (
-                                                    <span className="match-options">
-                                                        {item.matches.length}{" "}
-                                                        options
-                                                    </span>
-                                                ) : (
-                                                    <span className="pending-text">
-                                                        Pending...
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
+                                            item={item}
+                                            isSelected={false}
+                                            onToggleSelect={() => {}}
+                                            onManualSelect={() => {}}
+                                            showCheckbox={false}
+                                        />
                                     ))}
                                 </tbody>
                             </table>
@@ -276,21 +319,11 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
         <div className="import-preview">
             <h3>Preview Import</h3>
 
-            <div className="import-stats cluster">
-                <span className="stat stat--matched">
-                    ✓ {matchedCount} matched
-                </span>
-                {unmatchedCount > 0 && (
-                    <span className="stat stat--unmatched">
-                        ✗ {unmatchedCount} unmatched
-                    </span>
-                )}
-                {multipleCount > 0 && (
-                    <span className="stat stat--multiple">
-                        ? {multipleCount} need selection
-                    </span>
-                )}
-            </div>
+            <ImportStats
+                matchedCount={matchedCount}
+                unmatchedCount={unmatchedCount}
+                multipleCount={multipleCount}
+            />
 
             <div className="import-actions-bar repel">
                 <div className="cluster">
@@ -341,116 +374,14 @@ export const ImportPreview: FC<ImportPreviewProps> = ({
                     </thead>
                     <tbody>
                         {items.map((item) => (
-                            <tr
+                            <ImportTableRow
                                 key={item.id}
-                                className={`status-${item.status} ${
-                                    selectedForImport.has(item.id)
-                                        ? "selected"
-                                        : ""
-                                }`}
-                            >
-                                <td className="col-select">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedForImport.has(item.id)}
-                                        onChange={() =>
-                                            handleToggleSelection(item.id)
-                                        }
-                                        disabled={
-                                            item.status !== "matched" ||
-                                            !item.selectedMatch
-                                        }
-                                    />
-                                </td>
-                                <td className="col-status">
-                                    <span
-                                        className={`status-icon ${getStatusClass(item.status)}`}
-                                    >
-                                        {getStatusIcon(item.status)}
-                                    </span>
-                                </td>
-                                <td className="col-artist">
-                                    {item.artist || "—"}
-                                </td>
-                                <td className="col-album">{item.album}</td>
-                                <td className="col-match">
-                                    {item.selectedMatch ? (
-                                        <span className="match-info">
-                                            {item.selectedMatch.artist} —{" "}
-                                            {item.selectedMatch.albumTitle}
-                                            {item.selectedMatch.type && (
-                                                <span className="match-type">
-                                                    ({item.selectedMatch.type})
-                                                </span>
-                                            )}
-                                        </span>
-                                    ) : item.matches.length > 0 ? (
-                                        <span className="match-options">
-                                            {item.matches.length} options
-                                        </span>
-                                    ) : (
-                                        <span className="no-match">
-                                            No match found
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="col-action">
-                                    {item.status === "multiple" &&
-                                        item.matches.length > 0 && (
-                                            <select
-                                                value={
-                                                    item.selectedMatch
-                                                        ?.releaseGroupId || ""
-                                                }
-                                                onChange={(e) => {
-                                                    const match =
-                                                        item.matches.find(
-                                                            (m) =>
-                                                                m.releaseGroupId ===
-                                                                e.target.value,
-                                                        );
-                                                    if (match) {
-                                                        handleManualSelect(
-                                                            item,
-                                                            match,
-                                                        );
-                                                    }
-                                                }}
-                                            >
-                                                <option value="">
-                                                    Select match...
-                                                </option>
-                                                {item.matches.map((match) => (
-                                                    <option
-                                                        key={
-                                                            match.releaseGroupId
-                                                        }
-                                                        value={
-                                                            match.releaseGroupId
-                                                        }
-                                                    >
-                                                        {match.artist} —{" "}
-                                                        {match.albumTitle}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        )}
-                                    {item.status === "unmatched" && (
-                                        <button
-                                            type="button"
-                                            className="btn btn--small"
-                                            onClick={() => {
-                                                // Could open a search dialog here
-                                                alert(
-                                                    `Manual search not implemented yet. You can try editing the import data and re-importing.`,
-                                                );
-                                            }}
-                                        >
-                                            Search
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
+                                item={item}
+                                isSelected={selectedForImport.has(item.id)}
+                                onToggleSelect={handleToggleSelection}
+                                onManualSelect={handleManualSelect}
+                                showCheckbox={true}
+                            />
                         ))}
                     </tbody>
                 </table>
